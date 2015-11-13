@@ -20,6 +20,9 @@ namespace Ivony.Caching
 
     private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
 
+    private readonly IAsyncCacheProvider _valueProvider;
+
+
     private readonly object _sync = new object();
 
 
@@ -54,11 +57,13 @@ namespace Ivony.Caching
     /// <param name="cacheKey">缓存键</param>
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory )
+    private async Task<T> SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy )
     {
       await Task.Yield();
       var value = await valueFactory();
-      _values[cacheKey] = value;
+      await _valueProvider.Set( cacheKey, value, cachePolicy );
+
+      return value;
     }
 
 
@@ -66,7 +71,7 @@ namespace Ivony.Caching
 
     private async Task<Result<T>> GetValueAsync<T>( string cacheKey )
     {
-      var value = _values[cacheKey];
+      var value = await _valueProvider.Get( cacheKey );
 
       if ( value != null && value is T )
         return new Result<T>( (T) value );
@@ -95,7 +100,7 @@ namespace Ivony.Caching
         await task;
 
 
-      _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory ) );
+      _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
       await task;
     }
 
@@ -111,50 +116,54 @@ namespace Ivony.Caching
     public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
-      Task task;
+      var value = await GetValueAsync<T>( cacheKey );
+      if ( value.Success )
+        return value.Value;
 
+
+      Task task;
       lock ( _sync )
       {
+
+
         if ( _tasks.TryGetValue( cacheKey, out task ) == false )
         {
-
-
-          object value;
-
-          if ( _values.TryGetValue( cacheKey, out value ) && value is T )
-            return (T) value;
-
-
-          _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory ) );
+          _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
         }
       }
 
 
       await task;
-      return await FetchOrAdd( cacheKey, valueFactory, policy, cancellationToken );
+
+      var resultTask = task as Task<T>;
+      if ( resultTask != null )
+        return resultTask.Result;
+
+      else
+        return await FetchOrAdd( cacheKey, valueFactory, policy, cancellationToken );
     }
 
 
 
     public async Task<T> Fetch<T>( string cacheKey, T defaultValue = default( T ), CancellationToken cancellationToken = default( CancellationToken ) )
     {
-      Task task;
 
+
+      var value = await GetValueAsync<T>( cacheKey );
+      if ( value.Success )
+        return value.Value;
+
+
+
+
+      Task task;
       lock ( _sync )
       {
-        if ( _tasks.TryGetValue( cacheKey, out task ) == false )
-        {
-
-          object value;
-          if ( _values.TryGetValue( cacheKey, out value ) && value is T )
-            return (T) value;
-
-          else
-            return defaultValue;
-        }
+        if ( _tasks.TryGetValue( cacheKey, out task ) == false )//当前没有设置值的话直接返回默认值
+          return defaultValue;
       }
 
-      await task;
+      await task;                                               //否则等待值设置完毕后再检查
       return await Fetch( cacheKey, defaultValue, cancellationToken );
     }
 
@@ -168,8 +177,7 @@ namespace Ivony.Caching
     public Task ClearCache( string cacheKey )
     {
 
-      _values.Remove( cacheKey );
-      return Task.CompletedTask;
+      return _valueProvider.Remove( cacheKey );
 
     }
 
@@ -180,8 +188,7 @@ namespace Ivony.Caching
     public Task ClearCache()
     {
 
-      _values.Clear();
-      return Task.CompletedTask;
+      return _valueProvider.Clear();
 
     }
   }

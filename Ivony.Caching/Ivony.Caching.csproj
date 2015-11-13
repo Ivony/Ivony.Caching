@@ -43,7 +43,7 @@
   <ItemGroup>
     <Compile Include="CachePolicy.cs" />
     <Compile Include="CacheService.cs" />
-    <Compile Include="IAsyncDataProvider.cs" />
+    <Compile Include="IAsyncCacheProvider.cs" />
     <Compile Include="IAsyncCacheService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
