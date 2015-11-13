@@ -10,18 +10,15 @@ namespace Ivony.Caching
 {
 
   /// <summary>
-  /// 提供同步或异步的数据缓存的服务
+  /// 提供异步的数据缓存的服务
   /// </summary>
-  public class CacheService : IAsyncCacheService
+  public class AsyncCacheService : IAsyncCacheService
   {
 
 
     private readonly Dictionary<string, Task> _tasks = new Dictionary<string, Task>();
 
-    private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
-
-    private readonly IAsyncCacheProvider _valueProvider;
-
+    private readonly IAsyncCacheProvider _cacheProvider;
 
     private readonly object _sync = new object();
 
@@ -31,7 +28,7 @@ namespace Ivony.Caching
     /// <summary>
     /// 包装获取的值
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">值的类型</typeparam>
     private struct Result<T>
     {
       public Result( T value )
@@ -51,6 +48,19 @@ namespace Ivony.Caching
 
 
     /// <summary>
+    /// 创建异步缓存服务
+    /// </summary>
+    /// <param name="cacheProvider">异步缓存值提供程序</param>
+    public AsyncCacheService( IAsyncCacheProvider cacheProvider )
+    {
+      _cacheProvider = cacheProvider;
+    }
+
+
+
+
+
+    /// <summary>
     /// 创建一个设置缓存值的任务
     /// </summary>
     /// <typeparam name="T">缓存值类型</typeparam>
@@ -61,7 +71,7 @@ namespace Ivony.Caching
     {
       await Task.Yield();
       var value = await valueFactory();
-      await _valueProvider.Set( cacheKey, value, cachePolicy );
+      await _cacheProvider.Set( cacheKey, value, cachePolicy );
 
       return value;
     }
@@ -71,7 +81,7 @@ namespace Ivony.Caching
 
     private async Task<Result<T>> GetValueAsync<T>( string cacheKey )
     {
-      var value = await _valueProvider.Get( cacheKey );
+      var value = await _cacheProvider.Get( cacheKey );
 
       if ( value != null && value is T )
         return new Result<T>( (T) value );
@@ -177,7 +187,7 @@ namespace Ivony.Caching
     public Task ClearCache( string cacheKey )
     {
 
-      return _valueProvider.Remove( cacheKey );
+      return _cacheProvider.Remove( cacheKey );
 
     }
 
@@ -188,7 +198,7 @@ namespace Ivony.Caching
     public Task ClearCache()
     {
 
-      return _valueProvider.Clear();
+      return _cacheProvider.Clear();
 
     }
   }
