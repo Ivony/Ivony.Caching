@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E8E674D5-92A1-41E5-A91A-CF86A4E80BBE}</ProjectGuid>
+    <ProjectGuid>{4704CFEC-2495-45B9-9AC9-4F56F73DF01D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Ivony.Caching</RootNamespace>
-    <AssemblyName>Ivony.Caching</AssemblyName>
+    <RootNamespace>Ivony.Caching.Redis</RootNamespace>
+    <AssemblyName>Ivony.Caching.Redis</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -31,9 +31,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="StackExchange.Redis, Version=1.0.316.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\StackExchange.Redis.1.0.488\lib\net45\StackExchange.Redis.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,14 +45,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CacheExtensions.cs" />
-    <Compile Include="CachePolicy.cs" />
-    <Compile Include="AsyncCacheService.cs" />
-    <Compile Include="IAsyncCacheProvider.cs" />
-    <Compile Include="IAsyncCacheService.cs" />
-    <Compile Include="ICacheProvider.cs" />
-    <Compile Include="MemoryCacheProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Ivony.Caching\Ivony.Caching.csproj">
+      <Project>{e8e674d5-92a1-41e5-a91a-cf86a4e80bbe}</Project>
+      <Name>Ivony.Caching</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
