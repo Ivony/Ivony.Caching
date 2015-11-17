@@ -43,12 +43,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheExtensions.cs" />
+    <Compile Include="CacheItem.cs" />
     <Compile Include="CachePolicy.cs" />
     <Compile Include="AsyncCacheService.cs" />
     <Compile Include="IAsyncCacheProvider.cs" />
     <Compile Include="IAsyncCacheService.cs" />
+    <Compile Include="IAsyncL2CacheProvider.cs" />
     <Compile Include="ICacheProvider.cs" />
     <Compile Include="MemoryCacheProvider.cs" />
+    <Compile Include="AsyncMultiCacheProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Ivony.Caching
 {
+
   public class MemoryCacheProvider : ICacheProvider
   {
 
@@ -37,7 +38,7 @@ namespace Ivony.Caching
 
     public void Set( string key, object value, CachePolicy cachePolicy )
     {
-      _host.Set( new CacheItem( key, value ), CreateCacheItemPolicy( cachePolicy ) );
+      _host.Set( new System.Runtime.Caching.CacheItem( key, value ), CreateCacheItemPolicy( cachePolicy ) );
     }
 
     private CacheItemPolicy CreateCacheItemPolicy( CachePolicy cachePolicy )

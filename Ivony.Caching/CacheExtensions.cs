@@ -51,5 +51,15 @@ namespace Ivony.Caching
         return Task.CompletedTask;
       }
     }
+
+
+
+
+    public static Task Set( this IAsyncCacheProvider cacheProvider, CacheItem cacheItem )
+    {
+      return cacheProvider.Set( cacheItem.CacheKey, cacheItem.Value, cacheItem.CachePolicy );
+    }
+
+
   }
 }
