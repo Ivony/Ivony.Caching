@@ -184,7 +184,7 @@ namespace Ivony.Caching
     /// 清除指定缓存键的缓存项
     /// </summary>
     /// <param name="cacheKey">缓存键</param>
-    public Task ClearCache( string cacheKey )
+    public Task Remove( string cacheKey )
     {
 
       return _cacheProvider.Remove( cacheKey );
@@ -195,7 +195,7 @@ namespace Ivony.Caching
     /// <summary>
     /// 清除所有的缓存项
     /// </summary>
-    public Task ClearCache()
+    public Task Clear()
     {
 
       return _cacheProvider.Clear();

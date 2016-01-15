@@ -11,17 +11,17 @@ namespace Ivony.Caching
     /// <summary>
     /// 获取缓存值
     /// </summary>
-    /// <param name="key">缓存键</param>
+    /// <param name="cacheKey">缓存键</param>
     /// <returns>缓存值</returns>
-    object Get( string key );
+    object Get( string cacheKey );
 
     /// <summary>
     /// 设置缓存值
     /// </summary>
-    /// <param name="key">缓存键</param>
+    /// <param name="cacheKey">缓存键</param>
     /// <param name="value">缓存值</param>
     /// <param name="cachePolicy">缓存策略</param>
-    void Set( string key, object value, CachePolicy cachePolicy );
+    void Set( string cacheKey, object value, CachePolicy cachePolicy );
 
     /// <summary>
     /// 移除某个缓存值
