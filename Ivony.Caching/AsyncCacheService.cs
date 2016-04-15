@@ -57,6 +57,16 @@ namespace Ivony.Caching
     }
 
 
+    /// <summary>
+    /// 创建异步缓存服务
+    /// </summary>
+    /// <param name="cacheProvider">缓存值提供程序</param>
+    public AsyncCacheService( ICacheProvider cacheProvider )
+    {
+      _cacheProvider = cacheProvider.AsAsyncProvider();
+    }
+
+
 
 
 
@@ -144,6 +154,7 @@ namespace Ivony.Caching
 
 
       await task;
+      _tasks.Remove( cacheKey );
 
       var resultTask = task as Task<T>;
       if ( resultTask != null )

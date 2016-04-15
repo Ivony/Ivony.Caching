@@ -14,9 +14,12 @@ namespace Ivony.Caching.Memcached
 
     MemcachedClient client;
 
-    public MemcachedProvider( MemcachedClientConfiguration configuration )
+    public MemcachedProvider( MemcachedClientConfiguration configuration ) : this( new MemcachedClient( configuration ) ) { }
+
+
+    public MemcachedProvider( MemcachedClient client )
     {
-      client = new MemcachedClient( configuration );
+      this.client = client;
     }
 
 

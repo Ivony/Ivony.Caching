@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle( "Ivony.Caching.TestConsole" )]
+[assembly: AssemblyTitle( "Ivony.Caching.Test" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
 [assembly: AssemblyCompany( "" )]
-[assembly: AssemblyProduct( "Ivony.Caching.TestConsole" )]
-[assembly: AssemblyCopyright( "Copyright ©  2015" )]
+[assembly: AssemblyProduct( "Ivony.Caching.Test" )]
+[assembly: AssemblyCopyright( "Copyright ©  2016" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]
 
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible( false )]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid( "99b62fbb-5bdd-43af-b967-6dd42fd04798" )]
+[assembly: Guid( "673463a0-be04-4255-876a-b4bf10209d5e" )]
 
 // 程序集的版本信息由下列四个值组成: 
 //

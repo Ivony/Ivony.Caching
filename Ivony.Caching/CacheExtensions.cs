@@ -31,7 +31,7 @@ namespace Ivony.Caching
       public Task Clear()
       {
         provider.Clear();
-        return Task.CompletedTask;
+        return Task.FromResult( (object) null );
       }
 
       public Task<object> Get( string key )
@@ -42,13 +42,13 @@ namespace Ivony.Caching
       public Task Remove( string cacheKey )
       {
         provider.Remove( cacheKey );
-        return Task.CompletedTask;
+        return Task.FromResult( (object) null );
       }
 
       public Task Set( string key, object value, CachePolicy cachePolicy )
       {
         provider.Set( key, value, cachePolicy );
-        return Task.CompletedTask;
+        return Task.FromResult( (object) null );
       }
     }
 
