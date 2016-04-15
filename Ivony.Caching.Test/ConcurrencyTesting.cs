@@ -19,7 +19,7 @@ namespace Ivony.Caching.Test
       var tasks = new List<Task>();
 
 
-      for ( int i = 0; i < 10; i++ )
+      for ( int i = 0; i < 1000; i++ )
       {
         Func<int, Task> task = async ( j ) =>
         {
@@ -54,7 +54,7 @@ namespace Ivony.Caching.Test
     private async Task<string> ValueFactory()
     {
 
-      await Task.Delay( 100 );
+      await Task.Delay( 200 );
 
       if ( _value != null )
         Assert.Fail( "重复创建值" );
