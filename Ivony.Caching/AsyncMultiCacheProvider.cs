@@ -96,5 +96,19 @@ namespace Ivony.Caching
       await task;
     }
 
+
+
+    public void Dispose()
+    {
+      try
+      {
+        L1Cache.Dispose();
+      }
+      finally
+      {
+        L2Cache.Dispose();
+      }
+
+    }
   }
 }

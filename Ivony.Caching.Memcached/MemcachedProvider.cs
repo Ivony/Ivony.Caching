@@ -22,8 +22,6 @@ namespace Ivony.Caching.Memcached
       this.client = client;
     }
 
-
-
     void ICacheProvider.Clear()
     {
       client.FlushAll();
@@ -42,6 +40,11 @@ namespace Ivony.Caching.Memcached
     void ICacheProvider.Set( string key, object value, CachePolicy cachePolicy )
     {
       client.Store( StoreMode.Replace, key, value );
+    }
+
+    public void Dispose()
+    {
+      client.Dispose();
     }
   }
 }

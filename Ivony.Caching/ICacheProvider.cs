@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Ivony.Caching
 {
-  public interface ICacheProvider
+  public interface ICacheProvider : IDisposable
   {
     /// <summary>
     /// 获取缓存值

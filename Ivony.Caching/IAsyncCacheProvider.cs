@@ -10,7 +10,7 @@ namespace Ivony.Caching
   /// <summary>
   /// 异步缓存提供程序
   /// </summary>
-  public interface IAsyncCacheProvider
+  public interface IAsyncCacheProvider : IDisposable
   {
 
     /// <summary>

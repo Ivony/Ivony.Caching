@@ -37,6 +37,7 @@ namespace Ivony.Caching
       _host = new MemoryCache( _name );
     }
 
+
     /// <summary>
     /// 获取缓存值
     /// </summary>
@@ -75,6 +76,12 @@ namespace Ivony.Caching
     private CacheItemPolicy CreateCacheItemPolicy( CachePolicy cachePolicy )
     {
       return new CacheItemPolicy { AbsoluteExpiration = DateTime.UtcNow.AddHours( 1 ) };
+    }
+
+
+    public void Dispose()
+    {
+      _host.Dispose();
     }
   }
 }

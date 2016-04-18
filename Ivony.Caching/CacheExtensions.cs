@@ -12,7 +12,7 @@ namespace Ivony.Caching
     /// <summary>
     /// 将一个同步缓存提供程序转换为异步缓存提供程序
     /// </summary>
-    /// <param name="cacheProvider"></param>
+    /// <param name="cacheProvider">要包装的同步缓存提供程序</param>
     /// <returns></returns>
     public static IAsyncCacheProvider AsAsyncProvider( this ICacheProvider cacheProvider )
     {
@@ -49,6 +49,12 @@ namespace Ivony.Caching
       {
         provider.Set( key, value, cachePolicy );
         return Task.FromResult( (object) null );
+      }
+
+
+      public void Dispose()
+      {
+        provider.Dispose();
       }
     }
 
