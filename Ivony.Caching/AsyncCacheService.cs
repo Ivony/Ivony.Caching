@@ -153,8 +153,14 @@ namespace Ivony.Caching
       }
 
 
-      await task;
-      _tasks.Remove( cacheKey );
+      try
+      {
+        await task;
+      }
+      finally
+      {
+        _tasks.Remove( cacheKey );
+      }
 
       var resultTask = task as Task<T>;
       if ( resultTask != null )
