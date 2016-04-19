@@ -27,7 +27,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -45,7 +45,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -70,7 +70,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -83,7 +83,7 @@ namespace Ivony.Caching.Test
         cacheService.Clear();
         {
           _value = null;
-          var value = cacheService.FetchOrAdd( "Test", ValueFactory, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) ).Result;
+          var value = cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) ).Result;
 
           Assert.IsNotNull( _value );
           Assert.AreEqual( _value, value );
@@ -110,7 +110,7 @@ namespace Ivony.Caching.Test
             try
             {
 
-              await cacheService.FetchOrAdd( "Test", ValueFactoryWithException, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) );
+              await cacheService.FetchOrAdd( "Test", ValueFactoryWithException, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
             }
             catch
             {
@@ -119,7 +119,7 @@ namespace Ivony.Caching.Test
 
             Assert.IsTrue( exception_catched );
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, new CachePolicy( DateTime.UtcNow.AddHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
 
 

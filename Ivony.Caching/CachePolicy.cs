@@ -13,7 +13,7 @@ namespace Ivony.Caching
     /// 创建缓存策略
     /// </summary>
     /// <param name="expires">过期时间</param>
-    public CachePolicy( DateTime expires )
+    protected CachePolicy( DateTime expires )
     {
 
       if ( expires.Kind != DateTimeKind.Utc )
@@ -30,5 +30,25 @@ namespace Ivony.Caching
     /// </summary>
     public DateTime Expires { get; }
 
+
+
+    public static CachePolicy Expired( DateTime expires )
+    {
+      return new CachePolicy( expires );
+    }
+
+    public static CachePolicy Expired( DateTimeOffset expires )
+    {
+      return new CachePolicy( expires.UtcDateTime );
+    }
+
+
+    public static CachePolicy Expired( TimeSpan expireTime )
+    {
+      if ( expireTime < TimeSpan.Zero )
+        throw new ArgumentOutOfRangeException( "expireTime" );
+
+      return new CachePolicy( DateTime.UtcNow + expireTime );
+    }
   }
 }
