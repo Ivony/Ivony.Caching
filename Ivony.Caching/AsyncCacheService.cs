@@ -76,6 +76,7 @@ namespace Ivony.Caching
     /// <typeparam name="T">缓存值类型</typeparam>
     /// <param name="cacheKey">缓存键</param>
     /// <param name="valueFactory">创建缓存值的工厂</param>
+    /// <param name="cachePolicy">缓存策略</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
     private async Task<T> SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy )
     {
@@ -144,8 +145,6 @@ namespace Ivony.Caching
       Task task;
       lock ( _sync )
       {
-
-
         if ( _tasks.TryGetValue( cacheKey, out task ) == false )
         {
           _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
