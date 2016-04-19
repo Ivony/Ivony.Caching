@@ -14,7 +14,7 @@ namespace Ivony.Caching.Test
     {
       using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
       {
-        var cacheService = new AsyncCacheService( provider );
+        var cacheService = new CacheService( provider );
 
 
         var tasks = new List<Task>();
@@ -99,7 +99,7 @@ namespace Ivony.Caching.Test
 
       using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
       {
-        var cacheService = new AsyncCacheService( provider );
+        var cacheService = new CacheService( provider );
 
 
         Task.Run( async () =>

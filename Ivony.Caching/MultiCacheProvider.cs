@@ -9,9 +9,9 @@ namespace Ivony.Caching
 
 
   /// <summary>
-  /// 实现异步多级缓存提供程序
+  /// 实现多级异步缓存提供程序
   /// </summary>
-  public class AsyncMultiCacheProvider : IAsyncCacheProvider
+  public class MultiCacheProvider : IAsyncCacheProvider
   {
 
     /// <summary>
@@ -33,7 +33,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="l1Cache">一级缓存</param>
     /// <param name="l2Cache">二级缓存</param>
-    public AsyncMultiCacheProvider( IAsyncCacheProvider l1Cache, IAsyncL2CacheProvider l2Cache )
+    public MultiCacheProvider( IAsyncCacheProvider l1Cache, IAsyncL2CacheProvider l2Cache )
     {
       L1Cache = l1Cache;
       L2Cache = l2Cache;
