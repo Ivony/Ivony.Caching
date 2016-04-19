@@ -29,12 +29,18 @@ namespace Ivony.Caching.Memcached
 
     object ICacheProvider.Get( string key )
     {
-      return client.Get( key );
+      var result = client.ExecuteGet( key );
+      if ( result.Success == false )
+        throw new Exception( result.Message, result.Exception );
+
+      return result.Value;
     }
 
     void ICacheProvider.Remove( string cacheKey )
     {
-      client.Remove( cacheKey );
+      var result = client.ExecuteRemove( cacheKey );
+      if ( result.Success == false )
+        throw new Exception( result.Message, result.Exception );
     }
 
     void ICacheProvider.Set( string key, object value, CachePolicy cachePolicy )
