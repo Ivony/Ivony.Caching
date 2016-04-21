@@ -95,10 +95,15 @@ namespace Ivony.Caching
       var value = await _cacheProvider.Get( cacheKey );
 
       if ( value != null && value is T )
+      {
+        OnCacheHit( cacheKey );
         return new Result<T>( (T) value );
-
+      }
       else
+      {
+        OnCacheMiss( cacheKey );
         return new Result<T>();
+      }
     }
 
 
@@ -217,5 +222,39 @@ namespace Ivony.Caching
       return _cacheProvider.Clear();
 
     }
+
+
+
+
+
+    protected void OnCacheHit( string cacheKey )
+    {
+      if ( CacheHit != null )
+        CacheHit( this, new CacheEventArgs( cacheKey ) );
+
+    }
+    public event EventHandler<CacheEventArgs> CacheHit;
+
+
+    protected void OnCacheMiss( string cacheKey )
+    {
+      if ( CacheMiss != null )
+        CacheMiss( this, new CacheEventArgs( cacheKey ) );
+
+    }
+    public event EventHandler<CacheEventArgs> CacheMiss;
+
+  }
+
+
+  public class CacheEventArgs : EventArgs
+  {
+
+    public CacheEventArgs( string cacheKey )
+    {
+      CacheKey = cacheKey;
+    }
+
+    public string CacheKey { get; private set; }
   }
 }
