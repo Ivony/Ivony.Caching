@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ivony.Caching.Redis", "Ivon
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ivony.Caching.Test", "Ivony.Caching.Test\Ivony.Caching.Test.csproj", "{673463A0-BE04-4255-876A-B4BF10209D5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "TestConsole\TestConsole.csproj", "{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -89,22 +87,6 @@ Global
 		{673463A0-BE04-4255-876A-B4BF10209D5E}.Release|x64.Build.0 = Release|Any CPU
 		{673463A0-BE04-4255-876A-B4BF10209D5E}.Release|x86.ActiveCfg = Release|Any CPU
 		{673463A0-BE04-4255-876A-B4BF10209D5E}.Release|x86.Build.0 = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|ARM.Build.0 = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|x64.Build.0 = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Debug|x86.Build.0 = Debug|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|ARM.ActiveCfg = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|ARM.Build.0 = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|x64.ActiveCfg = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|x64.Build.0 = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|x86.ActiveCfg = Release|Any CPU
-		{2C74BDD2-22F5-4E0C-8912-D4F7C3DDFC18}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

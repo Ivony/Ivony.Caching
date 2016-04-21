@@ -51,9 +51,10 @@ namespace Ivony.Caching
     /// 创建异步缓存服务
     /// </summary>
     /// <param name="cacheProvider">异步缓存值提供程序</param>
-    public CacheService( IAsyncCacheProvider cacheProvider )
+    public CacheService( IAsyncCacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider;
+      DefaultCachePolicyProvider = defaultPolicy;
     }
 
 
@@ -61,13 +62,33 @@ namespace Ivony.Caching
     /// 创建异步缓存服务
     /// </summary>
     /// <param name="cacheProvider">缓存值提供程序</param>
-    public CacheService( ICacheProvider cacheProvider )
+    public CacheService( ICacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider.AsAsyncProvider();
+      DefaultCachePolicyProvider = defaultPolicy;
     }
 
 
 
+
+    protected ICachePolicyProvider DefaultCachePolicyProvider { get; private set; }
+
+
+
+    private sealed class NullCachePolicyProvider : ICachePolicyProvider
+    {
+      public CachePolicy CreateCachePolicy( string cacheKey, object cacheValue )
+      {
+        return null;
+      }
+
+
+    }
+
+    private static Exception NoCachePolicy()
+    {
+      return new ArgumentException( "cachePolicy", "It's not set a default cache policy provider or not provided a valid policy, and also not specified by argument." );
+    }
 
 
     /// <summary>
@@ -78,10 +99,15 @@ namespace Ivony.Caching
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <param name="cachePolicy">缓存策略</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task<T> SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy )
+    private async Task<T> SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy = null )
     {
       await Task.Yield();
       var value = await valueFactory();
+
+      cachePolicy = cachePolicy ?? DefaultCachePolicyProvider.CreateCachePolicy( cacheKey, value );
+      if ( cachePolicy == null )
+        throw NoCachePolicy();
+
       await _cacheProvider.Set( cacheKey, value, cachePolicy );
 
       return value;
@@ -119,7 +145,7 @@ namespace Ivony.Caching
     /// <param name="policy"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy, CancellationToken cancellationToken = default( CancellationToken ) )
+    public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
       Task task;
       if ( _tasks.TryGetValue( cacheKey, out task ) )
@@ -139,7 +165,7 @@ namespace Ivony.Caching
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <param name="cancellationToken">取消标识</param>
     /// <returns></returns>
-    public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy, CancellationToken cancellationToken = default( CancellationToken ) )
+    public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
       var value = await GetValueAsync<T>( cacheKey );
