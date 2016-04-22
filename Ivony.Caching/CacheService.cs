@@ -25,6 +25,25 @@ namespace Ivony.Caching
 
 
 
+    private readonly ConcurrentBag<ICacheServiceMonitor> _monitors = new ConcurrentBag<ICacheServiceMonitor>();
+
+
+
+    /// <summary>
+    /// 注册一个 CacheServiceMonitor
+    /// </summary>
+    /// <param name="monitor">要注册的 CacheServiceMonitor 对象</param>
+    /// <returns>返回自身便于链式调用</returns>
+    public CacheService RegisterMonitor( ICacheServiceMonitor monitor )
+    {
+      _monitors.Add( monitor );
+      return this;
+    }
+
+
+
+
+
     /// <summary>
     /// 包装获取的值
     /// </summary>
@@ -253,34 +272,28 @@ namespace Ivony.Caching
 
 
 
+    /// <summary>
+    /// 当缓存命中时调用此方法
+    /// </summary>
+    /// <param name="cacheKey"></param>
     protected void OnCacheHit( string cacheKey )
     {
-      if ( CacheHit != null )
-        CacheHit( this, new CacheEventArgs( cacheKey ) );
-
+      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      foreach ( var item in _monitors )
+        Task.Run( () => item.OnCacheHitted( cacheKey ) );
     }
-    public event EventHandler<CacheEventArgs> CacheHit;
 
 
+    /// <summary>
+    /// 当缓存未命中时调用此方法
+    /// </summary>
+    /// <param name="cacheKey"></param>
     protected void OnCacheMiss( string cacheKey )
     {
-      if ( CacheMiss != null )
-        CacheMiss( this, new CacheEventArgs( cacheKey ) );
-
-    }
-    public event EventHandler<CacheEventArgs> CacheMiss;
-
-  }
-
-
-  public class CacheEventArgs : EventArgs
-  {
-
-    public CacheEventArgs( string cacheKey )
-    {
-      CacheKey = cacheKey;
+      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      foreach ( var item in _monitors )
+        Task.Run( () => item.OnCacheMissed( cacheKey ) );
     }
 
-    public string CacheKey { get; private set; }
   }
 }

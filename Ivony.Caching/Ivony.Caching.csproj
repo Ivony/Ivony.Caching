@@ -43,6 +43,7 @@
     <Compile Include="CacheExtensions.cs" />
     <Compile Include="CacheItem.cs" />
     <Compile Include="CachePolicy.cs" />
+    <Compile Include="CacheServicePerformaceMonitor.cs" />
     <Compile Include="ICachePolicyProvider.cs" />
     <Compile Include="CacheService.cs" />
     <Compile Include="IAsyncCacheProvider.cs" />
@@ -50,6 +51,7 @@
     <Compile Include="IAsyncL2CacheProvider.cs" />
     <Compile Include="ICacheServiceMonitor.cs" />
     <Compile Include="ICacheProvider.cs" />
+    <Compile Include="ITextSerializer.cs" />
     <Compile Include="MemoryCacheProvider.cs" />
     <Compile Include="MultiCacheProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
