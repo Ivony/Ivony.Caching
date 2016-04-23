@@ -51,7 +51,8 @@ namespace Ivony.Caching.Test
       using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
       {
         var cacheService = new CacheService( provider );
-        cacheService.RegisterMonitor( new CacheServiceMonitorWithException() );
+        var monitor = new CacheServiceMonitorWithException();
+        cacheService.RegisterMonitor( monitor );
 
 
         Task.Run( async () =>
@@ -68,6 +69,70 @@ namespace Ivony.Caching.Test
         }
         ).Wait();
 
+
+        Assert.AreEqual( monitor.Misses, 1 );
+        Assert.AreEqual( monitor.Hits, 3 );
+
+      }
+
+    }
+
+
+
+    [TestMethod]
+    public void PerformaceMonitorTest()
+    {
+
+      using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
+      {
+        var cacheService = new CacheService( provider );
+        var monitor = new CacheServicePerformaceMonitor();
+        cacheService.RegisterMonitor( monitor );
+
+
+        Task.Run( async () =>
+        {
+
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+
+          monitor.Stop();
+          await Task.Delay( TimeSpan.FromSeconds( 3 ) );
+
+          Assert.AreEqual( monitor.Hits(), 1 );
+          Assert.AreEqual( monitor.Misses(), 1 );
+
+          Assert.AreEqual( monitor.Hits( "Test" ), 1 );
+          Assert.AreEqual( monitor.Misses( "Test" ), 1 );
+
+
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+
+          await Task.Delay( TimeSpan.FromSeconds( 3 ) );
+          Assert.AreEqual( monitor.Hits(), 1 );
+          Assert.AreEqual( monitor.Misses(), 1 );
+
+          Assert.AreEqual( monitor.Hits( "Test" ), 1 );
+          Assert.AreEqual( monitor.Misses( "Test" ), 1 );
+
+          monitor.Start();
+
+          await Task.Delay( TimeSpan.FromSeconds( 1 ) );
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await Task.Delay( TimeSpan.FromSeconds( 3 ) );
+
+
+          Assert.AreEqual( monitor.Hits(), 3 );
+          Assert.AreEqual( monitor.Misses(), 1 );
+
+          Assert.AreEqual( monitor.Hits( "Test" ), 3 );
+          Assert.AreEqual( monitor.Misses( "Test" ), 1 );
+
+        }
+        ).Wait();
+
       }
 
     }
@@ -75,13 +140,19 @@ namespace Ivony.Caching.Test
 
     public class CacheServiceMonitorWithException : ICacheServiceMonitor
     {
+
+      public int Hits { get; private set; }
+      public int Misses { get; private set; }
+
       public void OnCacheHitted( string cacheKey )
       {
+        Hits++;
         throw new Exception();
       }
 
       public void OnCacheMissed( string cacheKey )
       {
+        Misses++;
         throw new Exception();
       }
     }
