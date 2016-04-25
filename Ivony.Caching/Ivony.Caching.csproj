@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Ivony.Caching.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -44,6 +45,7 @@
     <Compile Include="CacheItem.cs" />
     <Compile Include="CachePolicy.cs" />
     <Compile Include="CacheServicePerformaceMonitor.cs" />
+    <Compile Include="DistributedCacheProvider.cs" />
     <Compile Include="ICachePolicyProvider.cs" />
     <Compile Include="CacheService.cs" />
     <Compile Include="IAsyncCacheProvider.cs" />

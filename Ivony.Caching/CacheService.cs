@@ -73,7 +73,7 @@ namespace Ivony.Caching
     public CacheService( IAsyncCacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider;
-      DefaultCachePolicyProvider = defaultPolicy;
+      DefaultCachePolicyProvider = defaultPolicy ?? new NullCachePolicyProvider();
     }
 
 
@@ -84,12 +84,15 @@ namespace Ivony.Caching
     public CacheService( ICacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider.AsAsyncProvider();
-      DefaultCachePolicyProvider = defaultPolicy;
+      DefaultCachePolicyProvider = defaultPolicy ?? new NullCachePolicyProvider();
     }
 
 
 
 
+    /// <summary>
+    /// 默认缓存策略提供程序
+    /// </summary>
     protected ICachePolicyProvider DefaultCachePolicyProvider { get; private set; }
 
 
