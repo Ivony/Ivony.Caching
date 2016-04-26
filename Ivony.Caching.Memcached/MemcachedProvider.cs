@@ -41,11 +41,7 @@ namespace Ivony.Caching.Memcached
 
     void ICacheProvider.Set( string key, object value, CachePolicy cachePolicy )
     {
-      var result = client.ExecuteStore( StoreMode.Set, key, value, cachePolicy.Expires );
-
-      if ( result.Success == false )
-        throw new Exception( result.Message, result.Exception );
-
+      client.Store( StoreMode.Set, key, value, cachePolicy.Expires );
     }
 
     public void Dispose()
