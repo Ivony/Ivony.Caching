@@ -148,7 +148,7 @@ namespace Ivony.Caching
       var prioroty = CachePriority.Parse( data[1] );
 
 
-      return new CachePolicy( new DateTime( expires ), prioroty );
+      return new CachePolicy( new DateTime( expires, DateTimeKind.Utc ), prioroty );
     }
 
 

@@ -242,7 +242,14 @@ namespace Ivony.Caching
           return defaultValue;
       }
 
-      await task;                                               //否则等待值设置完毕后再检查
+      try
+      {
+        await task;
+      }
+      finally
+      {
+        _tasks.Remove( cacheKey );
+      }
       return await Fetch( cacheKey, defaultValue, cancellationToken );
     }
 

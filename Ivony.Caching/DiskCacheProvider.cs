@@ -62,6 +62,8 @@ namespace Ivony.Caching
     /// </summary>
     public void Dispose()
     {
+      _manager.Dispose();
+      _manager = null;
     }
 
     /// <summary>
@@ -78,7 +80,7 @@ namespace Ivony.Caching
 
 
       var cachePolicy = _manager.GetCachePolicy( cacheKey );
-      if ( cachePolicy.IsValid == false )
+      if ( cachePolicy == null || cachePolicy.IsValid == false )
         return null;
 
       return _serializer.Deserialize( await _manager.ReadStream( cacheKey ) );

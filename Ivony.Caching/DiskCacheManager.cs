@@ -35,7 +35,7 @@ namespace Ivony.Caching
     /// <summary>
     /// 缓冲区大小
     /// </summary>
-    public int BufferSize { get; private set; }
+    public int BufferSize { get; private set; } = 1024;
 
 
     public Task<Stream> ReadStream( string cacheKey )
@@ -68,6 +68,7 @@ namespace Ivony.Caching
             break;
         }
 
+        result.Seek( 0, SeekOrigin.Begin );
         return result;
       }
     }
@@ -149,6 +150,9 @@ namespace Ivony.Caching
     /// </summary>
     public void Dispose()
     {
+
+      Directory.Delete( RootPath, true );
+
     }
   }
 }
