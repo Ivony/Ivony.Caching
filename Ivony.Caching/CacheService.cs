@@ -25,7 +25,7 @@ namespace Ivony.Caching
 
 
 
-    private readonly ConcurrentBag<ICacheServiceMonitor> _monitors = new ConcurrentBag<ICacheServiceMonitor>();
+    private readonly ConcurrentBag<ICacheMonitor> _monitors = new ConcurrentBag<ICacheMonitor>();
 
 
 
@@ -34,7 +34,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="monitor">要注册的 CacheServiceMonitor 对象</param>
     /// <returns>返回自身便于链式调用</returns>
-    public CacheService RegisterMonitor( ICacheServiceMonitor monitor )
+    public CacheService RegisterMonitor( ICacheMonitor monitor )
     {
       _monitors.Add( monitor );
       return this;
@@ -173,7 +173,7 @@ namespace Ivony.Caching
       if ( _tasks.TryGetValue( cacheKey, out task ) )
         await task;
 
-
+      //需要加锁？
       _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
       await task;
     }
@@ -211,7 +211,12 @@ namespace Ivony.Caching
       }
       finally
       {
-        _tasks.Remove( cacheKey );
+        lock ( _sync )
+        {
+          Task t;
+          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
+            _tasks.Remove( cacheKey );
+        }
       }
 
       var resultTask = task as Task<T>;
@@ -224,6 +229,14 @@ namespace Ivony.Caching
 
 
 
+    /// <summary>
+    /// 尝试从缓存中获取一个值
+    /// </summary>
+    /// <typeparam name="T">值类型</typeparam>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="defaultValue">默认值（若获取不到值时则返回默认值）</param>
+    /// <param name="cancellationToken">取消标识</param>
+    /// <returns></returns>
     public async Task<T> Fetch<T>( string cacheKey, T defaultValue = default( T ), CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
@@ -248,7 +261,12 @@ namespace Ivony.Caching
       }
       finally
       {
-        _tasks.Remove( cacheKey );
+        lock ( _sync )
+        {
+          Task t;
+          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
+            _tasks.Remove( cacheKey );
+        }
       }
       return await Fetch( cacheKey, defaultValue, cancellationToken );
     }

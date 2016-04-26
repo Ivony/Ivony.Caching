@@ -14,11 +14,19 @@ namespace Ivony.Caching
   internal sealed class DiskCacheManager : IDisposable
   {
 
+
+    /// <summary>
+    /// 创建磁盘缓存管理器对象
+    /// </summary>
+    /// <param name="rootPath"></param>
     public DiskCacheManager( string rootPath )
     {
       RootPath = rootPath;
     }
 
+    /// <summary>
+    /// 分配一个新的缓存目录（一般用于清除缓存）
+    /// </summary>
     internal void AssignCacheDirectory()
     {
       CurrentDirectory = Path.Combine( RootPath, Path.GetRandomFileName() );
@@ -27,17 +35,34 @@ namespace Ivony.Caching
 
 
 
+    /// <summary>
+    /// 缓存根目录
+    /// </summary>
     public string RootPath { get; }
 
+    /// <summary>
+    /// 当前目录
+    /// </summary>
     public string CurrentDirectory { get; private set; }
 
 
     /// <summary>
-    /// 缓冲区大小
+    /// 读写缓冲区大小
     /// </summary>
     public int BufferSize { get; private set; } = 1024;
 
 
+
+    private object _sync = new object();
+
+    private Dictionary<string, Task> actionTasks = new Dictionary<string, Task>();
+
+
+    /// <summary>
+    /// 读取一个流
+    /// </summary>
+    /// <param name="cacheKey">缓存键</param>
+    /// <returns></returns>
     public Task<Stream> ReadStream( string cacheKey )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
