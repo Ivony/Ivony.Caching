@@ -75,10 +75,18 @@ namespace Ivony.Caching
     /// <returns>MemoryCache 的缓存策略</returns>
     private CacheItemPolicy CreateCacheItemPolicy( CachePolicy cachePolicy )
     {
-      return new CacheItemPolicy { AbsoluteExpiration = DateTime.UtcNow.AddHours( 1 ) };
+      return new CacheItemPolicy
+      {
+        AbsoluteExpiration = cachePolicy.Expires,
+        Priority = cachePolicy.Priority.IsHighPriority ? CacheItemPriority.NotRemovable : CacheItemPriority.Default,
+      };
     }
 
 
+
+    /// <summary>
+    /// 回收所有非托管资源
+    /// </summary>
     public void Dispose()
     {
       _host.Dispose();

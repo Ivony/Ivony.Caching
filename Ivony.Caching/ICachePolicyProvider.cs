@@ -63,6 +63,35 @@ namespace Ivony.Caching
       }
     }
 
+
+
+    /// <summary>
+    /// 设置缓存策略提供程序的默认缓存优先级
+    /// </summary>
+    /// <param name="provider">要设置的缓存策略提供程序</param>
+    /// <param name="priority">默认缓存优先级</param>
+    /// <returns>应用了默认缓存优先级的缓存策略提供程序</returns>
+    public static ICachePolicyProvider SetPriority( this ICachePolicyProvider provider, CachePriority priority )
+    {
+      return new CachePolicyProviderWithPriority( provider, priority );
+    }
+
+    private class CachePolicyProviderWithPriority : ICachePolicyProvider
+    {
+      private CachePriority _priority;
+      private ICachePolicyProvider _provider;
+
+      public CachePolicyProviderWithPriority( ICachePolicyProvider provider, CachePriority priority )
+      {
+        _provider = provider;
+        _priority = priority;
+      }
+
+      public CachePolicy CreateCachePolicy( string cacheKey, object cacheValue )
+      {
+        return _provider.CreateCachePolicy( cacheKey, cacheValue ).SetPriority( _priority );
+      }
+    }
   }
 
 }
