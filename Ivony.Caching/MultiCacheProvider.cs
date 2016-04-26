@@ -52,14 +52,16 @@ namespace Ivony.Caching
       if ( value != null )
         return value;
 
-      var cacheItem = await L2Cache.GetCacheItem( key );
-      if ( cacheItem == null )
+
+      CachePolicy cachePolicy;
+      value = await L2Cache.Get( key, out cachePolicy );
+      if ( value == null )
         return null;
 
 
       //后台写入一级缓存
-      Background( L1Cache.Set( cacheItem ) );
-      return cacheItem.Value;
+      Background( L1Cache.Set( key, value, cachePolicy ) );
+      return value;
     }
 
     public virtual Task Remove( string cacheKey )
@@ -72,15 +74,13 @@ namespace Ivony.Caching
     public virtual async Task Set( string key, object value, CachePolicy cachePolicy )
     {
 
-      var cacheItem = new CacheItem( key, value, cachePolicy );
 
       //清除一级缓存，写入二级缓存
-
       await L1Cache.Remove( key );
-      await L2Cache.Set( cacheItem );
+      await L2Cache.Set( key, value, cachePolicy );
 
       //后台写入一级缓存。
-      Background( L1Cache.Set( cacheItem ) );
+      Background( L1Cache.Set( key, value, cachePolicy ) );
 
     }
 

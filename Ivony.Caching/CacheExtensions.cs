@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Ivony.Caching
 {
+
+  /// <summary>
+  /// 为缓存提供程序提供一些帮助方法
+  /// </summary>
   public static class CacheExtensions
   {
 
@@ -57,15 +61,5 @@ namespace Ivony.Caching
         provider.Dispose();
       }
     }
-
-
-
-
-    public static Task Set( this IAsyncCacheProvider cacheProvider, CacheItem cacheItem )
-    {
-      return cacheProvider.Set( cacheItem.CacheKey, cacheItem.Value, cacheItem.CachePolicy );
-    }
-
-
   }
 }

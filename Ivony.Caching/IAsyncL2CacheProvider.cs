@@ -9,7 +9,6 @@ namespace Ivony.Caching
   public interface IAsyncL2CacheProvider : IAsyncCacheProvider
   {
 
-    Task<CacheItem> GetCacheItem( string key );
-
+    Task<object> Get( string key, out CachePolicy cachePolicy );
   }
 }

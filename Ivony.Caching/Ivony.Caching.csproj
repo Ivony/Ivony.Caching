@@ -42,7 +42,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CacheExtensions.cs" />
-    <Compile Include="CacheItem.cs" />
     <Compile Include="CachePolicy.cs" />
     <Compile Include="CacheServicePerformaceMonitor.cs" />
     <Compile Include="DistributedCacheProvider.cs" />
