@@ -53,6 +53,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ConcurrencyTesting.cs" />
+    <Compile Include="DiskCacheTesting.cs" />
     <Compile Include="MonitorTesting.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
