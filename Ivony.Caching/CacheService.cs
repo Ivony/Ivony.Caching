@@ -306,7 +306,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey"></param>
     protected void OnCacheHit( string cacheKey )
     {
-      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      //不理会 CahceMonitor 执行过程中出现的异常
       foreach ( var item in _monitors )
         Task.Run( () => item.OnCacheHitted( cacheKey ) );
     }
@@ -318,7 +318,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey"></param>
     protected void OnCacheMiss( string cacheKey )
     {
-      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      //不理会 CahceMonitor 执行过程中出现的异常
       foreach ( var item in _monitors )
         Task.Run( () => item.OnCacheMissed( cacheKey ) );
     }
