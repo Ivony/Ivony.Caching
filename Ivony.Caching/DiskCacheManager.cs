@@ -100,6 +100,12 @@ namespace Ivony.Caching
 
     public Task WriteStream( string cacheKey, byte[] data )
     {
+      return WriteStream( cacheKey, new MemoryStream( data ) );
+    }
+
+
+    public Task WriteStream( string cacheKey, MemoryStream data )
+    {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
       Directory.CreateDirectory( CurrentDirectory );
 
@@ -114,11 +120,11 @@ namespace Ivony.Caching
     /// <param name="stream">文件流</param>
     /// <param name="data">数据</param>
     /// <returns></returns>
-    private async Task WriteStream( FileStream stream, byte[] data )
+    private async Task WriteStream( FileStream stream, MemoryStream data )
     {
       using ( stream )
       {
-        await new MemoryStream( data ).CopyToAsync( stream, BufferSize );
+        await data.CopyToAsync( stream, BufferSize );
       }
     }
 
