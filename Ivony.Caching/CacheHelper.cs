@@ -10,7 +10,7 @@ namespace Ivony.Caching
   /// <summary>
   /// 为缓存提供程序提供一些帮助方法
   /// </summary>
-  public static class CacheExtensions
+  public static class CacheHelper
   {
 
     /// <summary>

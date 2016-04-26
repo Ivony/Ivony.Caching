@@ -14,7 +14,8 @@ namespace Ivony.Caching
     /// 创建缓存策略
     /// </summary>
     /// <param name="expires">过期时间</param>
-    private CachePolicy( DateTime expires, CachePriority priority = default( CachePriority ) )
+    /// <param name="priority">缓存优先级</param>
+    public CachePolicy( DateTime expires, CachePriority priority = default( CachePriority ) )
     {
 
       if ( expires.Kind != DateTimeKind.Utc )
@@ -31,6 +32,12 @@ namespace Ivony.Caching
     /// 缓存失效时间
     /// </summary>
     public DateTime Expires { get; }
+
+
+    /// <summary>
+    /// 缓存目前是否有效
+    /// </summary>
+    public bool IsValid { get { return Expires > DateTime.UtcNow; } }
 
 
     /// <summary>
@@ -109,6 +116,53 @@ namespace Ivony.Caching
     {
       return new CachePolicy( Expires, priority );
     }
+
+
+
+
+    private static readonly CachePolicy _invalid = CachePolicy.Expired( DateTime.MinValue.ToUniversalTime() );
+
+
+    /// <summary>
+    /// 获取一个已经失效的缓存策略
+    /// </summary>
+    public static CachePolicy Invalid { get { return _invalid; } }
+
+
+
+    /// <summary>
+    /// 从字符串中解析出缓存策略对象
+    /// </summary>
+    /// <param name="str">要解析的字符串</param>
+    /// <returns>缓存策略对象</returns>
+    public static CachePolicy Parse( string str )
+    {
+      if ( str == null )
+        throw new ArgumentNullException( str );
+
+      var data = str.Split( ',' );
+      if ( data.Length != 2 )
+        throw new FormatException();
+
+      var expires = long.Parse( data[0] );
+      var prioroty = CachePriority.Parse( data[1] );
+
+
+      return new CachePolicy( new DateTime( expires ), prioroty );
+    }
+
+
+    /// <summary>
+    /// 重写 ToString 方法，输出缓存策略字符串表达形式
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+      return string.Format( "{0},{1}", Expires.Ticks, Priority );
+    }
+
+
+
   }
 
   /// <summary>
@@ -126,6 +180,8 @@ namespace Ivony.Caching
     private CachePriority( int priorityValue, string hint = null )
     {
       _priorityValue = priorityValue;
+      if ( hint != null && hint.Contains( "\n" ) )
+        throw new ArgumentException( "hint cannot contains new-line character", "hint" );
       _hint = hint;
     }
 
@@ -236,6 +292,47 @@ namespace Ivony.Caching
         result += ":" + _hint;
 
       return result;
+    }
+
+
+    /// <summary>
+    /// 从字符串中解析出缓存优先级信息
+    /// </summary>
+    /// <param name="str">要解析的字符串</param>
+    /// <returns></returns>
+    public static CachePriority Parse( string str )
+    {
+
+      var index = str.IndexOf( ':' );
+
+      string value, hint;
+      if ( index == -1 )
+      {
+        value = str;
+        hint = null;
+      }
+      else
+      {
+        value = str.Remove( index );
+        hint = str.Substring( index + 1 );
+      }
+
+
+      switch ( value )
+      {
+        case "Low":
+          return new CachePriority( -1, hint );
+
+        case "Default":
+          return new CachePriority( 0, hint );
+
+        case "High":
+          return new CachePriority( 1, hint );
+
+        default:
+          throw new FormatException();
+      }
+
     }
   }
 

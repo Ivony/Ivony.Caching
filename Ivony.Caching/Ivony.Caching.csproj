@@ -41,9 +41,11 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CacheExtensions.cs" />
+    <Compile Include="CacheHelper.cs" />
     <Compile Include="CachePolicy.cs" />
     <Compile Include="CacheServicePerformaceMonitor.cs" />
+    <Compile Include="DiskCacheManager.cs" />
+    <Compile Include="DiskCacheProvider.cs" />
     <Compile Include="DistributedCacheProvider.cs" />
     <Compile Include="ICachePolicyProvider.cs" />
     <Compile Include="CacheService.cs" />
