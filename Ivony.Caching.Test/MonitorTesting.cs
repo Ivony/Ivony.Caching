@@ -58,13 +58,13 @@ namespace Ivony.Caching.Test
         Task.Run( async () =>
         {
 
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
 
           await Task.Delay( 100 );
 
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
 
         }
         ).Wait();
@@ -93,8 +93,8 @@ namespace Ivony.Caching.Test
         Task.Run( async () =>
         {
 
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
 
           await Task.Delay( TimeSpan.FromSeconds( 3 ) );
           monitor.Stop();
@@ -106,8 +106,8 @@ namespace Ivony.Caching.Test
           Assert.AreEqual( monitor.Misses( "Test" ), 1 );
 
 
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
 
           await Task.Delay( TimeSpan.FromSeconds( 3 ) );
           Assert.AreEqual( monitor.Hits(), 1 );
@@ -119,8 +119,8 @@ namespace Ivony.Caching.Test
           monitor.Start();
 
           await Task.Delay( TimeSpan.FromSeconds( 1 ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-          await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+          await cacheService.FetchOrAdd( "Test", () => Task.Run( () => "Test" ), CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
           await Task.Delay( TimeSpan.FromSeconds( 3 ) );
 
 
