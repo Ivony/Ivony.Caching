@@ -98,7 +98,7 @@ namespace Ivony.Caching
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
         return readTask.Result;
 
-      else                                   //如果当前正在写，等写完后再读取一次。
+      else                                   //如果当前正在写，则再读取一次。
         return await ReadStream( cacheKey );
 
     }
