@@ -90,11 +90,41 @@ namespace Ivony.Caching.Test
 
         var task = foo();
 
-        await Task.Delay( TimeSpan.FromSeconds( 1 ) );
+        await Task.Delay( 100 );
         Assert.AreEqual( output, "before promotor" );
 
         promotor.SetResult( null );
-        await Task.Delay( TimeSpan.FromSeconds( 1 ) );
+        await Task.Delay( 100 );
+        Assert.AreEqual( output, "after promotor" );
+      } ).Wait();
+    }
+
+
+
+
+    [TestMethod]
+    public void PromotorTest2()
+    {
+      Task.Run( async () =>
+      {
+
+
+        var output = (string) null;
+        var promotor = new TaskCompletionSource<object>();
+
+        var task = Task.Run( async () =>
+        {
+          output = "before promotor";
+          await promotor.Task;
+          output = "after promotor";
+
+        } );
+
+        await Task.Delay( 100 );
+        Assert.AreEqual( output, "before promotor" );
+
+        promotor.SetResult( null );
+        await Task.Delay( 100 );
         Assert.AreEqual( output, "after promotor" );
       } ).Wait();
     }

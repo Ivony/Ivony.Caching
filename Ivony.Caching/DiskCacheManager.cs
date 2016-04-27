@@ -72,17 +72,20 @@ namespace Ivony.Caching
         return null;
 
 
-      var cancellation = new CancellationTokenSource();
+      var promotor = new TaskCompletionSource<object>();
       var newTask = Task.Run( async () =>
       {
-        await Task.Yield();
+        await promotor.Task;
         return await ReadStream( File.OpenRead( filepath ) );
-      }, cancellation.Token );
+      } );
 
 
       var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
       if ( newTask != task )   //如果任务未能加入队列，则直接取消
-        cancellation.Cancel();
+        promotor.SetCanceled();
+      else
+        promotor.SetResult( null );
+
 
       try
       {
@@ -139,16 +142,20 @@ namespace Ivony.Caching
 
 
 
-
-      var cancellation = new CancellationTokenSource();
+      var promotor = new TaskCompletionSource<object>();
       var newTask = Task.Run( async () =>
       {
-        await Task.Yield();
+        await promotor.Task;
         await WriteStream( File.OpenWrite( filepath ), data );
-      }, cancellation.Token );
+      } );
 
 
       var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
+      if ( newTask != task )     //如果任务未能加入队列，则直接取消
+        promotor.SetCanceled();
+      else
+        promotor.SetResult( null );
+
 
       try
       {
@@ -160,11 +167,8 @@ namespace Ivony.Caching
       }
 
 
-      if ( newTask != task )     //如果任务未能加入队列，则直接取消然后再尝试一次
-      {
-        cancellation.Cancel();
+      if ( newTask != task )     //如果任务未能加入队列，则再尝试一次
         await WriteStream( cacheKey, data );
-      }
 
     }
 
