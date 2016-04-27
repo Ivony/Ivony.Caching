@@ -176,14 +176,14 @@ namespace Ivony.Caching
     public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
-      var task = SetValue( cacheKey, valueFactory, policy );
+      var newTask = SetValue( cacheKey, valueFactory, policy );
 
       while ( true )
       {
-        var task1 = _tasks.AddOrUpdate( cacheKey, task, ( key, item ) => item ?? task );
-        await task1;
+        var task = _tasks.GetOrAdd( cacheKey, newTask, item => item != null );
+        await task;
 
-        if ( task == task1 )
+        if ( newTask == task )
           return;
       }
     }
@@ -206,17 +206,18 @@ namespace Ivony.Caching
 
 
 
-      var taskSource = new TaskCompletionSource<object>();
-      var newTask = SetValue( cacheKey, valueFactory, policy, taskSource.Task );
-      var task = _tasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
+      var promotor = new TaskCompletionSource<object>();
+      var newTask = SetValue( cacheKey, valueFactory, policy, promotor.Task );
+
+      Task task = _tasks.GetOrAdd( cacheKey, newTask, item => item != null );
 
       Contract.Assert( task != null );
 
       if ( task != newTask )         //如果新创建的任务不是当前任务
-        taskSource.SetCanceled();    //放弃这个任务
+        promotor.SetCanceled();    //放弃这个任务
 
       else
-        taskSource.SetResult( null );//继续运行这个任务
+        promotor.SetResult( null );//继续运行这个任务
 
 
 
@@ -237,6 +238,7 @@ namespace Ivony.Caching
       else
         return await FetchOrAdd( cacheKey, valueFactory, policy, cancellationToken );
     }
+
 
 
 

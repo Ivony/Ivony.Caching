@@ -44,6 +44,7 @@
     <Compile Include="CacheHelper.cs" />
     <Compile Include="CachePolicy.cs" />
     <Compile Include="CachePerformaceMonitor.cs" />
+    <Compile Include="ConcurrentHelper.cs" />
     <Compile Include="DiskCacheManager.cs" />
     <Compile Include="DiskCacheProvider.cs" />
     <Compile Include="DistributedCacheProvider.cs" />
