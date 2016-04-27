@@ -14,11 +14,19 @@ namespace Ivony.Caching
   internal sealed class DiskCacheManager : IDisposable
   {
 
+
+    /// <summary>
+    /// 创建磁盘缓存管理器对象
+    /// </summary>
+    /// <param name="rootPath"></param>
     public DiskCacheManager( string rootPath )
     {
       RootPath = rootPath;
     }
 
+    /// <summary>
+    /// 分配一个新的缓存目录（一般用于清除缓存）
+    /// </summary>
     internal void AssignCacheDirectory()
     {
       CurrentDirectory = Path.Combine( RootPath, Path.GetRandomFileName() );
@@ -27,17 +35,34 @@ namespace Ivony.Caching
 
 
 
+    /// <summary>
+    /// 缓存根目录
+    /// </summary>
     public string RootPath { get; }
 
+    /// <summary>
+    /// 当前目录
+    /// </summary>
     public string CurrentDirectory { get; private set; }
 
 
     /// <summary>
-    /// 缓冲区大小
+    /// 读写缓冲区大小
     /// </summary>
     public int BufferSize { get; private set; } = 1024;
 
 
+
+    private object _sync = new object();
+
+    private Dictionary<string, Task> actionTasks = new Dictionary<string, Task>();
+
+
+    /// <summary>
+    /// 读取一个流
+    /// </summary>
+    /// <param name="cacheKey">缓存键</param>
+    /// <returns></returns>
     public Task<Stream> ReadStream( string cacheKey )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
@@ -75,6 +100,12 @@ namespace Ivony.Caching
 
     public Task WriteStream( string cacheKey, byte[] data )
     {
+      return WriteStream( cacheKey, new MemoryStream( data ) );
+    }
+
+
+    public Task WriteStream( string cacheKey, MemoryStream data )
+    {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
       Directory.CreateDirectory( CurrentDirectory );
 
@@ -89,11 +120,11 @@ namespace Ivony.Caching
     /// <param name="stream">文件流</param>
     /// <param name="data">数据</param>
     /// <returns></returns>
-    private async Task WriteStream( FileStream stream, byte[] data )
+    private async Task WriteStream( FileStream stream, MemoryStream data )
     {
       using ( stream )
       {
-        await new MemoryStream( data ).CopyToAsync( stream, BufferSize );
+        await data.CopyToAsync( stream, BufferSize );
       }
     }
 

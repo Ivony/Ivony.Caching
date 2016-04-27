@@ -11,7 +11,7 @@ namespace Ivony.Caching
   /// <summary>
   /// CacheService 性能计数监视器
   /// </summary>
-  public class CacheServicePerformaceMonitor : ICacheServiceMonitor
+  public class CachePerformaceMonitor : ICacheMonitor
   {
 
 
@@ -20,7 +20,7 @@ namespace Ivony.Caching
     /// 创建 CacheServicePerformaceMonitor 实例 
     /// </summary>
     /// <param name="startImmediate">是否立即启动性能计数</param>
-    public CacheServicePerformaceMonitor( bool startImmediate = true )
+    public CachePerformaceMonitor( bool startImmediate = true )
     {
       if ( startImmediate )
         Start();
@@ -65,7 +65,7 @@ namespace Ivony.Caching
 
 
 
-    void ICacheServiceMonitor.OnCacheHitted( string cacheKey )
+    void ICacheMonitor.OnCacheHitted( string cacheKey )
     {
       if ( stopping )
         return;
@@ -73,7 +73,7 @@ namespace Ivony.Caching
       realTimeData.Add( new Entry { cacheKey = cacheKey, hitted = true } );
     }
 
-    void ICacheServiceMonitor.OnCacheMissed( string cacheKey )
+    void ICacheMonitor.OnCacheMissed( string cacheKey )
     {
       if ( stopping )
         return;

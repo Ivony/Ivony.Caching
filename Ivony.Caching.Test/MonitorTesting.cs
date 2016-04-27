@@ -86,7 +86,7 @@ namespace Ivony.Caching.Test
       using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
       {
         var cacheService = new CacheService( provider );
-        var monitor = new CacheServicePerformaceMonitor();
+        var monitor = new CachePerformaceMonitor();
         cacheService.RegisterMonitor( monitor );
 
 
@@ -138,7 +138,7 @@ namespace Ivony.Caching.Test
     }
 
 
-    public class CacheServiceMonitorWithException : ICacheServiceMonitor
+    public class CacheServiceMonitorWithException : ICacheMonitor
     {
 
       public int Hits { get; private set; }

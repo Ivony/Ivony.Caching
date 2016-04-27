@@ -8,9 +8,9 @@ namespace Ivony.Caching
 {
 
   /// <summary>
-  /// 定义一个 CacheService 监视器
+  /// 定义一个缓存监视器，用于监控 CacheService 或 CacheProvider 缓存命中情况
   /// </summary>
-  public interface ICacheServiceMonitor
+  public interface ICacheMonitor
   {
 
     /// <summary>

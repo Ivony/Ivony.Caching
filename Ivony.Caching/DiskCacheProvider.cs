@@ -111,7 +111,7 @@ namespace Ivony.Caching
 
       var stream = new MemoryStream();
       _serializer.Serialize( stream, value );
-      await _manager.WriteStream( cacheKey, stream.ToArray() );
+      await _manager.WriteStream( cacheKey, stream );
 
     }
   }

@@ -25,7 +25,7 @@ namespace Ivony.Caching
 
 
 
-    private readonly ConcurrentBag<ICacheServiceMonitor> _monitors = new ConcurrentBag<ICacheServiceMonitor>();
+    private readonly ConcurrentBag<ICacheMonitor> _monitors = new ConcurrentBag<ICacheMonitor>();
 
 
 
@@ -34,7 +34,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="monitor">要注册的 CacheServiceMonitor 对象</param>
     /// <returns>返回自身便于链式调用</returns>
-    public CacheService RegisterMonitor( ICacheServiceMonitor monitor )
+    public CacheService RegisterMonitor( ICacheMonitor monitor )
     {
       _monitors.Add( monitor );
       return this;
@@ -121,7 +121,7 @@ namespace Ivony.Caching
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <param name="cachePolicy">缓存策略</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task<T> SetValueAsync<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy = null )
+    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy = null )
     {
       await Task.Yield();
       var value = await valueFactory();
@@ -138,7 +138,7 @@ namespace Ivony.Caching
 
 
 
-    private async Task<Result<T>> GetValueAsync<T>( string cacheKey )
+    private async Task<Result<T>> GetValue<T>( string cacheKey )
     {
       var value = await _cacheProvider.Get( cacheKey );
 
@@ -173,8 +173,8 @@ namespace Ivony.Caching
       if ( _tasks.TryGetValue( cacheKey, out task ) )
         await task;
 
-
-      _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
+      //需要加锁？
+      _tasks.Add( cacheKey, task = SetValue( cacheKey, valueFactory, policy ) );
       await task;
     }
 
@@ -190,7 +190,7 @@ namespace Ivony.Caching
     public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
-      var value = await GetValueAsync<T>( cacheKey );
+      var value = await GetValue<T>( cacheKey );
       if ( value.Success )
         return value.Value;
 
@@ -200,7 +200,7 @@ namespace Ivony.Caching
       {
         if ( _tasks.TryGetValue( cacheKey, out task ) == false )
         {
-          _tasks.Add( cacheKey, task = SetValueAsync( cacheKey, valueFactory, policy ) );
+          _tasks.Add( cacheKey, task = SetValue( cacheKey, valueFactory, policy ) );
         }
       }
 
@@ -211,7 +211,12 @@ namespace Ivony.Caching
       }
       finally
       {
-        _tasks.Remove( cacheKey );
+        lock ( _sync )
+        {
+          Task t;
+          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
+            _tasks.Remove( cacheKey );
+        }
       }
 
       var resultTask = task as Task<T>;
@@ -224,11 +229,19 @@ namespace Ivony.Caching
 
 
 
+    /// <summary>
+    /// 尝试从缓存中获取一个值
+    /// </summary>
+    /// <typeparam name="T">值类型</typeparam>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="defaultValue">默认值（若获取不到值时则返回默认值）</param>
+    /// <param name="cancellationToken">取消标识</param>
+    /// <returns></returns>
     public async Task<T> Fetch<T>( string cacheKey, T defaultValue = default( T ), CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
 
-      var value = await GetValueAsync<T>( cacheKey );
+      var value = await GetValue<T>( cacheKey );
       if ( value.Success )
         return value.Value;
 
@@ -248,7 +261,12 @@ namespace Ivony.Caching
       }
       finally
       {
-        _tasks.Remove( cacheKey );
+        lock ( _sync )
+        {
+          Task t;
+          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
+            _tasks.Remove( cacheKey );
+        }
       }
       return await Fetch( cacheKey, defaultValue, cancellationToken );
     }
@@ -288,7 +306,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey"></param>
     protected void OnCacheHit( string cacheKey )
     {
-      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      //不理会 CahceMonitor 执行过程中出现的异常
       foreach ( var item in _monitors )
         Task.Run( () => item.OnCacheHitted( cacheKey ) );
     }
@@ -300,7 +318,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey"></param>
     protected void OnCacheMiss( string cacheKey )
     {
-      //不理会 CahceServiceMonitor 执行过程中出现的异常
+      //不理会 CahceMonitor 执行过程中出现的异常
       foreach ( var item in _monitors )
         Task.Run( () => item.OnCacheMissed( cacheKey ) );
     }

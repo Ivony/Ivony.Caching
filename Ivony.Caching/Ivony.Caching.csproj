@@ -43,7 +43,7 @@
   <ItemGroup>
     <Compile Include="CacheHelper.cs" />
     <Compile Include="CachePolicy.cs" />
-    <Compile Include="CacheServicePerformaceMonitor.cs" />
+    <Compile Include="CachePerformaceMonitor.cs" />
     <Compile Include="DiskCacheManager.cs" />
     <Compile Include="DiskCacheProvider.cs" />
     <Compile Include="DistributedCacheProvider.cs" />
@@ -52,7 +52,7 @@
     <Compile Include="IAsyncCacheProvider.cs" />
     <Compile Include="IAsyncCacheService.cs" />
     <Compile Include="IAsyncL2CacheProvider.cs" />
-    <Compile Include="ICacheServiceMonitor.cs" />
+    <Compile Include="ICacheMonitor.cs" />
     <Compile Include="ICacheProvider.cs" />
     <Compile Include="ITextSerializer.cs" />
     <Compile Include="MemoryCacheProvider.cs" />
