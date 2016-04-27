@@ -70,7 +70,8 @@ namespace Ivony.Caching
     /// <summary>
     /// 创建异步缓存服务
     /// </summary>
-    /// <param name="cacheProvider">异步缓存值提供程序</param>
+    /// <param name="cacheProvider">异步缓存提供程序</param>
+    /// <param name="defaultPolicy">默认缓存策略</param>
     public CacheService( IAsyncCacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider;
@@ -81,7 +82,8 @@ namespace Ivony.Caching
     /// <summary>
     /// 创建异步缓存服务
     /// </summary>
-    /// <param name="cacheProvider">缓存值提供程序</param>
+    /// <param name="cacheProvider">同步缓存提供程序</param>
+    /// <param name="defaultPolicy">默认缓存策略</param>
     public CacheService( ICacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
     {
       _cacheProvider = cacheProvider.AsAsyncProvider();
