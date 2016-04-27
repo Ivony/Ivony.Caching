@@ -122,6 +122,7 @@ namespace Ivony.Caching
     /// <returns></returns>
     private async Task WriteStream( FileStream stream, MemoryStream data )
     {
+      data.Seek( 0, SeekOrigin.Begin );
       using ( stream )
       {
         await data.CopyToAsync( stream, BufferSize );

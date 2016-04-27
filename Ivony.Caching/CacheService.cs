@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -16,7 +17,7 @@ namespace Ivony.Caching
   {
 
 
-    private readonly Dictionary<string, Task> _tasks = new Dictionary<string, Task>();
+    private readonly ConcurrentDictionary<string, Task> _tasks = new ConcurrentDictionary<string, Task>();
 
     private readonly IAsyncCacheProvider _cacheProvider;
 
@@ -120,10 +121,13 @@ namespace Ivony.Caching
     /// <param name="cacheKey">缓存键</param>
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <param name="cachePolicy">缓存策略</param>
+    /// <param name="promotor">启动子，只有当启动子完成后任务才启动。</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy = null )
+    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy, Task promotor = null )
     {
-      await Task.Yield();
+      if ( promotor != null )
+        await promotor;
+
       var value = await valueFactory();
 
       cachePolicy = cachePolicy ?? DefaultCachePolicyProvider.CreateCachePolicy( cacheKey, value );
@@ -169,13 +173,17 @@ namespace Ivony.Caching
     /// <returns></returns>
     public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
-      Task task;
-      if ( _tasks.TryGetValue( cacheKey, out task ) )
-        await task;
 
-      //需要加锁？
-      _tasks.Add( cacheKey, task = SetValue( cacheKey, valueFactory, policy ) );
-      await task;
+      var task = SetValue( cacheKey, valueFactory, policy );
+
+      while ( true )
+      {
+        var task1 = _tasks.AddOrUpdate( cacheKey, task, ( key, item ) => item ?? task );
+        await task1;
+
+        if ( task == task1 )
+          return;
+      }
     }
 
 
@@ -195,14 +203,20 @@ namespace Ivony.Caching
         return value.Value;
 
 
-      Task task;
-      lock ( _sync )
-      {
-        if ( _tasks.TryGetValue( cacheKey, out task ) == false )
-        {
-          _tasks.Add( cacheKey, task = SetValue( cacheKey, valueFactory, policy ) );
-        }
-      }
+
+      var taskSource = new TaskCompletionSource<object>();
+      var newTask = SetValue( cacheKey, valueFactory, policy, taskSource.Task );
+      var task = _tasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
+
+      Contract.Assert( task != null );
+
+      if ( task != newTask )         //如果新创建的任务不是当前任务
+        taskSource.SetCanceled();    //放弃这个任务
+
+      else
+        taskSource.SetResult( null );//继续运行这个任务
+
+
 
 
       try
@@ -211,12 +225,7 @@ namespace Ivony.Caching
       }
       finally
       {
-        lock ( _sync )
-        {
-          Task t;
-          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
-            _tasks.Remove( cacheKey );
-        }
+        _tasks.TryUpdate( cacheKey, null, task );
       }
 
       var resultTask = task as Task<T>;
@@ -246,12 +255,10 @@ namespace Ivony.Caching
         return value.Value;
 
 
-
-
       Task task;
       lock ( _sync )
       {
-        if ( _tasks.TryGetValue( cacheKey, out task ) == false )//当前没有设置值的话直接返回默认值
+        if ( _tasks.TryGetValue( cacheKey, out task ) == false || task == null )//当前没有设置值的话直接返回默认值
           return defaultValue;
       }
 
@@ -261,14 +268,16 @@ namespace Ivony.Caching
       }
       finally
       {
-        lock ( _sync )
-        {
-          Task t;
-          if ( _tasks.TryGetValue( cacheKey, out t ) && t == task )
-            _tasks.Remove( cacheKey );
-        }
+        _tasks.TryUpdate( cacheKey, null, task );
       }
-      return await Fetch( cacheKey, defaultValue, cancellationToken );
+
+
+      var resultTask = task as Task<T>;
+      if ( resultTask != null )
+        return resultTask.Result;
+
+      else
+        return await Fetch( cacheKey, defaultValue, cancellationToken );
     }
 
 
