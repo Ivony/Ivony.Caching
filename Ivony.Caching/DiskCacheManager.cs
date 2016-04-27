@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Ivony.Caching
@@ -55,7 +57,7 @@ namespace Ivony.Caching
 
     private object _sync = new object();
 
-    private Dictionary<string, Task> actionTasks = new Dictionary<string, Task>();
+    private ConcurrentDictionary<string, Task> actionTasks = new ConcurrentDictionary<string, Task>();
 
 
     /// <summary>
@@ -63,15 +65,41 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheKey">缓存键</param>
     /// <returns></returns>
-    public Task<Stream> ReadStream( string cacheKey )
+    public async Task<Stream> ReadStream( string cacheKey )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
       if ( File.Exists( filepath ) == false )
         return null;
 
 
-      var task = ReadStream( File.OpenRead( filepath ) );
-      return task;
+      var cancellation = new CancellationTokenSource();
+      var newTask = Task.Run( async () =>
+      {
+        await Task.Yield();
+        return await ReadStream( File.OpenRead( filepath ) );
+      }, cancellation.Token );
+
+
+      var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
+      if ( newTask != task )   //如果任务未能加入队列，则直接取消
+        cancellation.Cancel();
+
+      try
+      {
+        await task;
+      }
+      finally
+      {
+        actionTasks.TryUpdate( cacheKey, null, task );
+      }
+
+
+      var readTask = task as Task<Stream>;
+      if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
+        return readTask.Result;
+
+      else                                   //如果当前正在写，等写完后再读取一次。
+        return await ReadStream( cacheKey );
 
     }
 
@@ -104,13 +132,40 @@ namespace Ivony.Caching
     }
 
 
-    public Task WriteStream( string cacheKey, MemoryStream data )
+    public async Task WriteStream( string cacheKey, MemoryStream data )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey );
       Directory.CreateDirectory( CurrentDirectory );
 
-      var task = WriteStream( File.OpenWrite( filepath ), data );
-      return task;
+
+
+
+      var cancellation = new CancellationTokenSource();
+      var newTask = Task.Run( async () =>
+      {
+        await Task.Yield();
+        await WriteStream( File.OpenWrite( filepath ), data );
+      }, cancellation.Token );
+
+
+      var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
+
+      try
+      {
+        await task;
+      }
+      finally
+      {
+        actionTasks.TryUpdate( cacheKey, null, task );
+      }
+
+
+      if ( newTask != task )     //如果任务未能加入队列，则直接取消然后再尝试一次
+      {
+        cancellation.Cancel();
+        await WriteStream( cacheKey, data );
+      }
+
     }
 
 
