@@ -96,8 +96,8 @@ namespace Ivony.Caching.Test
           await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
           await cacheService.FetchOrAdd( "Test", async () => { return "Test"; }, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
 
-          monitor.Stop();
           await Task.Delay( TimeSpan.FromSeconds( 3 ) );
+          monitor.Stop();
 
           Assert.AreEqual( monitor.Hits(), 1 );
           Assert.AreEqual( monitor.Misses(), 1 );
