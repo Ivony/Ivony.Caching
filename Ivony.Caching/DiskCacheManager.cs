@@ -57,7 +57,25 @@ namespace Ivony.Caching
 
     private object _sync = new object();
 
-    private ConcurrentDictionary<string, Task> actionTasks = new ConcurrentDictionary<string, Task>();
+    private Dictionary<string, Task> actionTasks = new Dictionary<string, Task>();
+
+
+    private async Task WaitAndRemove( string cacheKey, Task task )
+    {
+      try
+      {
+        await task;
+      }
+      finally
+      {
+        lock ( _sync )
+        {
+          Task current;
+          if ( actionTasks.TryGetValue( cacheKey, out current ) && current == task )
+            actionTasks.Remove( cacheKey );
+        }
+      }
+    }
 
 
     /// <summary>
@@ -72,30 +90,19 @@ namespace Ivony.Caching
         return null;
 
 
-      var promotor = new TaskCompletionSource<object>();
-      var newTask = Task.Run( async () =>
+
+      Task task;
+      lock ( _sync )
       {
-        await promotor.Task;
-        return await ReadStream( File.OpenRead( filepath ) );
-      } );
-
-
-      var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
-      if ( newTask != task )   //如果任务未能加入队列，则直接取消
-        promotor.SetCanceled();
-      else
-        promotor.SetResult( null );
-
-
-      try
-      {
-        await task;
-      }
-      finally
-      {
-        actionTasks.TryUpdate( cacheKey, null, task );
+        if ( actionTasks.TryGetValue( cacheKey, out task ) == false )
+        {
+          actionTasks.Add( cacheKey, task = ReadStream( File.OpenRead( filepath ) ) );
+        }
       }
 
+
+
+      await WaitAndRemove( cacheKey, task );
 
       var readTask = task as Task<Stream>;
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
@@ -105,6 +112,8 @@ namespace Ivony.Caching
         return await ReadStream( cacheKey );
 
     }
+
+
 
     private async Task<Stream> ReadStream( FileStream stream )
     {
@@ -142,32 +151,21 @@ namespace Ivony.Caching
 
 
 
-      var promotor = new TaskCompletionSource<object>();
-      var newTask = Task.Run( async () =>
+      Task task;
+      bool running = false;
+      lock ( _sync )
       {
-        await promotor.Task;
-        await WriteStream( File.OpenWrite( filepath ), data );
-      } );
-
-
-      var task = actionTasks.AddOrUpdate( cacheKey, newTask, ( key, item ) => item ?? newTask );
-      if ( newTask != task )     //如果任务未能加入队列，则直接取消
-        promotor.SetCanceled();
-      else
-        promotor.SetResult( null );
-
-
-      try
-      {
-        await task;
-      }
-      finally
-      {
-        actionTasks.TryUpdate( cacheKey, null, task );
+        if ( actionTasks.TryGetValue( cacheKey, out task ) == false )
+          actionTasks.Add( cacheKey, task = WriteStream( File.OpenWrite( filepath ), data ) );
+        else
+          running = true;
       }
 
+      await WaitAndRemove( cacheKey, task );
 
-      if ( newTask != task )     //如果任务未能加入队列，则再尝试一次
+
+
+      if ( running )     //如果任务未能加入队列，则再尝试一次
         await WriteStream( cacheKey, data );
 
     }

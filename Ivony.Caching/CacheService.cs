@@ -17,11 +17,11 @@ namespace Ivony.Caching
   {
 
 
-    private readonly ConcurrentDictionary<string, Task> _tasks = new ConcurrentDictionary<string, Task>();
-
     private readonly IAsyncCacheProvider _cacheProvider;
 
     private readonly object _sync = new object();
+
+    private readonly TaskQueueCollection _tasks = new TaskQueueCollection();
 
 
 
@@ -123,12 +123,10 @@ namespace Ivony.Caching
     /// <param name="cacheKey">缓存键</param>
     /// <param name="valueFactory">创建缓存值的工厂</param>
     /// <param name="cachePolicy">缓存策略</param>
-    /// <param name="promotor">启动子，只有当启动子完成后任务才启动。</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy, Task promotor = null )
+    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy )
     {
-      if ( promotor != null )
-        await promotor;
+      await Task.Yield();
 
       var value = await valueFactory();
 
@@ -146,6 +144,8 @@ namespace Ivony.Caching
 
     private async Task<Result<T>> GetValue<T>( string cacheKey )
     {
+      await Task.Yield();
+
       var value = await _cacheProvider.Get( cacheKey );
 
       if ( value != null && value is T )
@@ -176,16 +176,19 @@ namespace Ivony.Caching
     public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
-      var newTask = SetValue( cacheKey, valueFactory, policy );
-
-      while ( true )
+      bool running = true;
+      var task = _tasks.GetOrAdd( cacheKey, () =>
       {
-        var task = _tasks.GetOrAdd( cacheKey, newTask, item => item != null );
-        await task;
+        running = false;
+        return SetValue( cacheKey, valueFactory, policy );
+      } );
 
-        if ( newTask == task )
-          return;
-      }
+
+      await _tasks.WaitAndRemove( cacheKey, task );
+
+      if ( running )
+        await Set( cacheKey, valueFactory, policy, cancellationToken );
+
     }
 
 
@@ -195,6 +198,7 @@ namespace Ivony.Caching
     /// <typeparam name="T">缓存值类型</typeparam>
     /// <param name="cacheKey">缓存键</param>
     /// <param name="valueFactory">创建缓存值的工厂</param>
+    /// <param name="policy">缓存策略</param>
     /// <param name="cancellationToken">取消标识</param>
     /// <returns></returns>
     public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
@@ -206,30 +210,9 @@ namespace Ivony.Caching
 
 
 
-      var promotor = new TaskCompletionSource<object>();
-      var newTask = SetValue( cacheKey, valueFactory, policy, promotor.Task );
+      var task = _tasks.GetOrAdd( cacheKey, () => SetValue( cacheKey, valueFactory, policy ) );
+      await _tasks.WaitAndRemove( cacheKey, task );
 
-      Task task = _tasks.GetOrAdd( cacheKey, newTask, item => item != null );
-
-      Contract.Assert( task != null );
-
-      if ( task != newTask )         //如果新创建的任务不是当前任务
-        promotor.SetCanceled();    //放弃这个任务
-
-      else
-        promotor.SetResult( null );//继续运行这个任务
-
-
-
-
-      try
-      {
-        await task;
-      }
-      finally
-      {
-        _tasks.TryUpdate( cacheKey, null, task );
-      }
 
       var resultTask = task as Task<T>;
       if ( resultTask != null )
@@ -260,21 +243,10 @@ namespace Ivony.Caching
 
 
       Task task;
-      lock ( _sync )
-      {
-        if ( _tasks.TryGetValue( cacheKey, out task ) == false || task == null )//当前没有设置值的话直接返回默认值
-          return defaultValue;
-      }
+      if ( _tasks.TryGetValue( cacheKey, out task ) == false )//当前没有设置值的话直接返回默认值
+        return defaultValue;
 
-      try
-      {
-        await task;
-      }
-      finally
-      {
-        _tasks.TryUpdate( cacheKey, null, task );
-      }
-
+      await _tasks.WaitAndRemove( cacheKey, task );
 
       var resultTask = task as Task<T>;
       if ( resultTask != null )
@@ -283,7 +255,6 @@ namespace Ivony.Caching
       else
         return await Fetch( cacheKey, defaultValue, cancellationToken );
     }
-
 
 
 
