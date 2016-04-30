@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Ivony.Caching
 {
+
+  /// <summary>
+  /// 缓存提供程序
+  /// </summary>
   public interface ICacheProvider : IDisposable
   {
     /// <summary>
@@ -33,7 +37,6 @@ namespace Ivony.Caching
     /// <summary>
     /// 清空缓存
     /// </summary>
-    /// <returns>用于等待操作完成的 Task 对象</returns>
     void Clear();
 
   }
