@@ -219,7 +219,7 @@ namespace Ivony.Caching
         return resultTask.Result;
 
       else
-        return await FetchOrAdd( cacheKey, valueFactory, policy, cancellationToken );
+        throw new InvalidCastException( string.Format( "cannot cast the setted value to type \"{0}\"", typeof( T ).AssemblyQualifiedName ) );
     }
 
 
@@ -253,7 +253,7 @@ namespace Ivony.Caching
         return resultTask.Result;
 
       else
-        return await Fetch( cacheKey, defaultValue, cancellationToken );
+        throw new InvalidCastException( string.Format( "cannot convert the setted value to type \"{0}\"", typeof( T ).AssemblyQualifiedName ) );
     }
 
 
