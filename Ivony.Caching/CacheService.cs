@@ -21,7 +21,7 @@ namespace Ivony.Caching
 
     private readonly object _sync = new object();
 
-    private readonly TaskQueueCollection _tasks = new TaskQueueCollection();
+    private readonly TaskManager _tasks = new TaskManager();
 
 
 
@@ -180,14 +180,12 @@ namespace Ivony.Caching
     {
 
       bool running = true;
-      var task = _tasks.GetOrAdd( cacheKey, () =>
+      await _tasks.GetOrAdd( cacheKey, () =>
       {
         running = false;
         return SetValue( cacheKey, valueFactory, policy );
       } );
 
-
-      await _tasks.WaitAndRemove( cacheKey, task );
 
       if ( running )
         await Set( cacheKey, valueFactory, policy, cancellationToken );
@@ -214,7 +212,7 @@ namespace Ivony.Caching
 
 
       var task = _tasks.GetOrAdd( cacheKey, () => SetValue( cacheKey, valueFactory, policy ) );
-      await _tasks.WaitAndRemove( cacheKey, task );
+      await task;
 
 
       var resultTask = task as Task<T>;
@@ -245,11 +243,9 @@ namespace Ivony.Caching
         return value.Value;
 
 
-      Task task;
-      if ( _tasks.TryGetValue( cacheKey, out task ) == false )//当前没有设置值的话直接返回默认值
-        return defaultValue;
 
-      await _tasks.WaitAndRemove( cacheKey, task );
+      var task = _tasks.GetOrAdd( cacheKey, () => Task.FromResult( defaultValue ) );
+      await task;
 
       var resultTask = task as Task<T>;
       if ( resultTask != null )

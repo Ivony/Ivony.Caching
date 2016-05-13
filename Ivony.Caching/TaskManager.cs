@@ -6,16 +6,46 @@ using System.Threading.Tasks;
 
 namespace Ivony.Caching
 {
+
+
+  /// <summary>
+  /// 对 Task 进行队列和其他管理的服务
+  /// </summary>
   public sealed class TaskManager
   {
 
 
-    private Dictionary<string, TaskItem> _dictionary;
+    private readonly Dictionary<string, TaskItem> _dictionary = new Dictionary<string, TaskItem>();
 
     private object _sync = new object();
 
 
-    public sealed class TaskItem : IDisposable
+
+
+    /// <summary>
+    /// 获取当前正在执行的任务，若当前没有正在执行的任务，则创建一个新的。
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="taskFactory"></param>
+    /// <returns></returns>
+    public Task GetOrAdd( string key, Func<Task> taskFactory )
+    {
+      TaskItem item;
+
+      lock ( _sync )
+      {
+        if ( _dictionary.TryGetValue( key, out item ) == false )
+          _dictionary.Add( key, item = new TaskItem( key, this, taskFactory ) );
+      }
+
+      return item.Task;
+    }
+
+
+    /// <summary>
+    /// 一个任务项
+    /// </summary>
+    private sealed class TaskItem : IDisposable
     {
 
       private string _key;
@@ -75,11 +105,17 @@ namespace Ivony.Caching
       /// </summary>
       public void Dispose()
       {
-        _task = null;
-        _manager = null;
-        _taskFactory = null;
-        _manager._dictionary.Remove( _key );
+
+        lock ( _sync )
+        {
+          if ( _manager == null )
+            return;
+
+          _manager._dictionary.Remove( _key );
+          _manager = null;
+        }
       }
+
 
 
 
