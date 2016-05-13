@@ -15,7 +15,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="expires">过期时间</param>
     /// <param name="priority">缓存优先级</param>
-    public CachePolicy( DateTime expires, CachePriority priority = default( CachePriority ) )
+    private CachePolicy( DateTime expires, CachePriority priority = default( CachePriority ) )
     {
 
       if ( expires.Kind != DateTimeKind.Utc )

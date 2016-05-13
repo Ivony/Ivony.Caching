@@ -134,7 +134,10 @@ namespace Ivony.Caching
       if ( cachePolicy == null )
         throw NoCachePolicy();
 
-      await _cacheProvider.Set( cacheKey, value, cachePolicy );
+
+      if ( cachePolicy.IsValid )
+        await _cacheProvider.Set( cacheKey, value, cachePolicy );
+
 
       return value;
     }
