@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,10 +16,7 @@ namespace Ivony.Caching
   {
 
 
-    private readonly Dictionary<string, TaskItem> _dictionary = new Dictionary<string, TaskItem>();
-
-    private object _sync = new object();
-
+    private readonly ConcurrentDictionary<string, TaskItem> _dictionary = new ConcurrentDictionary<string, TaskItem>();
 
 
 
@@ -30,15 +28,9 @@ namespace Ivony.Caching
     /// <returns></returns>
     public Task GetOrAdd( string key, Func<Task> taskFactory )
     {
-      TaskItem item;
 
-      lock ( _sync )
-      {
-        if ( _dictionary.TryGetValue( key, out item ) == false )
-          _dictionary.Add( key, item = new TaskItem( key, this, taskFactory ) );
-      }
+      return _dictionary.GetOrAdd( key, new TaskItem( key, this, taskFactory ) ).Task;
 
-      return item.Task;
     }
 
 
@@ -86,13 +78,8 @@ namespace Ivony.Caching
           if ( _task == null )
             _task = _taskFactory();
 
-          Task.Run( async () =>//任务执行完成，则立即抛弃当前项。
-          {
-            using ( this )
-            {
-              await _task;
-            }
-          } );
+
+          _task.GetAwaiter().OnCompleted( () => this.Dispose() );//任务执行完成，则立即抛弃当前项。
 
           return _task;
 
@@ -111,7 +98,8 @@ namespace Ivony.Caching
           if ( _manager == null )
             return;
 
-          _manager._dictionary.Remove( _key );
+          TaskItem item;
+          _manager._dictionary.TryRemove( _key, out item );
           _manager = null;
         }
       }
