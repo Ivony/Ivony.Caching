@@ -63,26 +63,12 @@ namespace Ivony.Caching
       {
         lock ( _sync )
         {
-          if ( _manager == null )
-            throw new ObjectDisposedException( "TaskItem" );
-
-
-          TaskItem item;
-          if ( _manager._dictionary.TryGetValue( _key, out item ) == false )
-            return null;
-
-          if ( item != this )
-            return null;
-
-
           if ( _task == null )
             _task = _taskFactory();
-
 
           _task.GetAwaiter().OnCompleted( () => this.Dispose() );//任务执行完成，则立即抛弃当前项。
 
           return _task;
-
         }
       }
 
