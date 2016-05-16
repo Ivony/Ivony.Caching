@@ -18,7 +18,7 @@ namespace Ivony.Caching
     /// 获取缓存项有效状态
     /// </summary>
     /// 
-    public abstract CacheValidationState GetCacheState();
+    public abstract CacheState GetCacheState();
 
 
 
@@ -99,38 +99,38 @@ namespace Ivony.Caching
 
 
 
-      private CacheValidationState _state = CacheValidationState.Valid;
+      private CacheState _state = CacheState.Valid;
 
-      public override CacheValidationState GetCacheState()
+      public override CacheState GetCacheState()
       {
 
-        if ( _state == CacheValidationState.Invalid )
-          return CacheValidationState.Invalid;
+        if ( _state == CacheState.Invalid )
+          return CacheState.Invalid;
 
         foreach ( var item in _items )
         {
           _state = CompareState( _state, item.GetCacheState() );
-          if ( _state == CacheValidationState.Invalid )
-            return CacheValidationState.Invalid;
+          if ( _state == CacheState.Invalid )
+            return CacheState.Invalid;
         }
 
 
         return _state;
       }
 
-      private CacheValidationState CompareState( CacheValidationState a, CacheValidationState b )
+      private CacheState CompareState( CacheState a, CacheState b )
       {
-        if ( a == CacheValidationState.Invalid || b == CacheValidationState.Invalid )               //任何一个状态无效则无效
-          return CacheValidationState.Invalid;
+        if ( a == CacheState.Invalid || b == CacheState.Invalid )               //任何一个状态无效则无效
+          return CacheState.Invalid;
 
-        else if ( a == CacheValidationState.NearInvalid || b == CacheValidationState.NearInvalid )  //在没有无效状态的前提下，有接近无效状态则接近无效
-          return CacheValidationState.NearInvalid;
+        else if ( a == CacheState.NearInvalid || b == CacheState.NearInvalid )  //在没有无效状态的前提下，有接近无效状态则接近无效
+          return CacheState.NearInvalid;
 
-        else if ( a == CacheValidationState.Valid && b == CacheValidationState.Valid )              //只有两个状态都有效的时候才是有效的
-          return CacheValidationState.Valid;
+        else if ( a == CacheState.Valid && b == CacheState.Valid )              //只有两个状态都有效的时候才是有效的
+          return CacheState.Valid;
 
         else                                                                                        //无法识别的状态都是无效
-          return CacheValidationState.Invalid;
+          return CacheState.Invalid;
 
 
       }
@@ -175,9 +175,9 @@ namespace Ivony.Caching
 
       public DateTime Expires { get { return _expires; } }
 
-      public override CacheValidationState GetCacheState()
+      public override CacheState GetCacheState()
       {
-        return DateTime.UtcNow > _expires ? CacheValidationState.Valid : CacheValidationState.Invalid;
+        return DateTime.UtcNow > _expires ? CacheState.Valid : CacheState.Invalid;
       }
     }
 
@@ -187,7 +187,7 @@ namespace Ivony.Caching
   /// <summary>
   /// 定义缓存项有效状态
   /// </summary>
-  public enum CacheValidationState
+  public enum CacheState
   {
     /// <summary>缓存项当前有效</summary>
     Valid,

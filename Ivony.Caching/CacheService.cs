@@ -135,7 +135,7 @@ namespace Ivony.Caching
         throw NoCachePolicy();
 
 
-      if ( policy.GetCacheState( cacheKey ) == CacheValidationState.Valid )
+      if ( policy.CacheState != CacheState.Invalid )
         await _cacheProvider.Set( cacheKey, value, policy );
 
 

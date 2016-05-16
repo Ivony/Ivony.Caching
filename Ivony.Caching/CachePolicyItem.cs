@@ -37,7 +37,7 @@ namespace Ivony.Caching
     /// <summary>
     /// 缓存目前是否有效
     /// </summary>
-    public bool IsValid { get { return Expires > DateTime.UtcNow && Dependencies.GetCacheState() == CacheValidationState.Valid; } }
+    public bool IsValid { get { return Expires > DateTime.UtcNow && Dependencies.GetCacheState() == CacheState.Valid; } }
 
 
     /// <summary>
@@ -104,18 +104,20 @@ namespace Ivony.Caching
     /// <summary>
     /// 获取缓存项当前状态
     /// </summary>
-    /// <param name="cacheKey">缓存键</param>
     /// <returns></returns>
-    public CacheValidationState GetCacheState( string cacheKey )
+    public CacheState CacheState
     {
-      if ( DateTime.UtcNow < Expires )
-        return CacheValidationState.Invalid;
+      get
+      {
+        if ( DateTime.UtcNow > Expires )
+          return CacheState.Invalid;
 
-      if ( Dependencies == null )
-        return CacheValidationState.Valid;
+        if ( Dependencies == null )
+          return CacheState.Valid;
 
-      else
-        return Dependencies.GetCacheState();
+        else
+          return Dependencies.GetCacheState();
+      }
     }
 
 

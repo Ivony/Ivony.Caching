@@ -80,7 +80,7 @@ namespace Ivony.Caching
 
 
       var cachePolicy = _manager.GetCachePolicy( cacheKey );
-      if ( cachePolicy == null || cachePolicy.GetCacheState( cacheKey ) == CacheValidationState.Invalid )
+      if ( cachePolicy == null || cachePolicy.CacheState == CacheState.Invalid )
         return null;
 
       return _serializer.Deserialize( await _manager.ReadStream( cacheKey ) );
