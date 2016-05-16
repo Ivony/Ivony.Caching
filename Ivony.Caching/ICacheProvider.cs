@@ -25,7 +25,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey">缓存键</param>
     /// <param name="value">缓存值</param>
     /// <param name="cachePolicy">缓存策略</param>
-    void Set( string cacheKey, object value, CachePolicy cachePolicy );
+    void Set( string cacheKey, object value, CachePolicyItem cachePolicy );
 
     /// <summary>
     /// 移除某个缓存值

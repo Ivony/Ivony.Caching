@@ -210,14 +210,14 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheKey">缓存键</param>
     /// <returns>缓存策略对象</returns>
-    public CachePolicy GetCachePolicy( string cacheKey )
+    public CachePolicyItem GetCachePolicy( string cacheKey )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 
       if ( File.Exists( filepath ) == false )
         return null;
 
-      return CachePolicy.Parse( File.ReadAllText( filepath ) );
+      return CachePolicyItem.Parse( File.ReadAllText( filepath ) );
     }
 
 
@@ -227,7 +227,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheKey"></param>
     /// <param name="cachePolicy"></param>
-    public void SetCachePolicy( string cacheKey, CachePolicy cachePolicy )
+    public void SetCachePolicy( string cacheKey, CachePolicyItem cachePolicy )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 

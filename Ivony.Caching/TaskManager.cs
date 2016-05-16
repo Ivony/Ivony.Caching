@@ -66,10 +66,18 @@ namespace Ivony.Caching
           if ( _task == null )
             _task = _taskFactory();
 
-          _task.GetAwaiter().OnCompleted( () => this.Dispose() );//任务执行完成，则立即抛弃当前项。
-
-          return _task;
         }
+
+
+        if ( _task == null )
+        {
+          Dispose();
+          return null;
+        }
+
+        _task.GetAwaiter().OnCompleted( () => this.Dispose() );//任务执行完成，则立即抛弃当前项。
+
+        return _task;
       }
 
 

@@ -26,10 +26,10 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="name">MemoryCache 的配置名称</param>
     /// <param name="configuration">MemoryCache 配置信息</param>
-    public MemoryCacheProvider( string name, MemoryCacheConfiguration configuration )
+    public MemoryCacheProvider( string name, Configuration configuration )
     {
       _name = name;
-      _host = new MemoryCache( name, configuration == null ? null : configuration.Configuration );
+      _host = new MemoryCache( name, configuration == null ? null : configuration.ConfigurationData );
     }
 
 
@@ -80,7 +80,7 @@ namespace Ivony.Caching
     /// <param name="key">缓存键</param>
     /// <param name="value">缓存值</param>
     /// <param name="cachePolicy">缓存策略</param>
-    public void Set( string key, object value, CachePolicy cachePolicy )
+    public void Set( string key, object value, CachePolicyItem cachePolicy )
     {
       _host.Set( new System.Runtime.Caching.CacheItem( key, value ), CreateCacheItemPolicy( cachePolicy ) );
     }
@@ -90,7 +90,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cachePolicy">缓存策略</param>
     /// <returns>MemoryCache 的缓存策略</returns>
-    private CacheItemPolicy CreateCacheItemPolicy( CachePolicy cachePolicy )
+    private CacheItemPolicy CreateCacheItemPolicy( CachePolicyItem cachePolicy )
     {
       return new CacheItemPolicy
       {
@@ -111,26 +111,37 @@ namespace Ivony.Caching
 
 
 
+
+    /// <summary>
+    /// 获取 MemoryCache 对象
+    /// </summary>
+    public MemoryCache MemoryCache
+    {
+      get { return _host; }
+    }
+
+
+
     /// <summary>
     /// MemoryCache 配置信息
     /// </summary>
-    public sealed class MemoryCacheConfiguration
+    public sealed class Configuration
     {
 
 
-      internal NameValueCollection Configuration { get; private set; }
+      internal NameValueCollection ConfigurationData { get; private set; }
 
 
-      public MemoryCacheConfiguration()
+      public Configuration()
       {
-        Configuration = new NameValueCollection();
+        ConfigurationData = new NameValueCollection();
       }
 
       public string this[string key]
       {
-        get { return Configuration[key]; }
+        get { return ConfigurationData[key]; }
 
-        set { Configuration[key] = value; }
+        set { ConfigurationData[key] = value; }
       }
 
 
@@ -142,7 +153,7 @@ namespace Ivony.Caching
         get
         {
           int result;
-          if ( int.TryParse( Configuration["CacheMemoryLimitMegabytes"], out result ) )
+          if ( int.TryParse( ConfigurationData["CacheMemoryLimitMegabytes"], out result ) )
             return result;
 
           else
@@ -151,9 +162,9 @@ namespace Ivony.Caching
         set
         {
           if ( value == null )
-            Configuration["CacheMemoryLimitMegabytes"] = null;
+            ConfigurationData["CacheMemoryLimitMegabytes"] = null;
           else
-            Configuration["CacheMemoryLimitMegabytes"] = value.ToString();
+            ConfigurationData["CacheMemoryLimitMegabytes"] = value.ToString();
 
         }
       }
@@ -166,7 +177,7 @@ namespace Ivony.Caching
         get
         {
           int result;
-          if ( int.TryParse( Configuration["PhysicalMemoryLimitPercentage"], out result ) )
+          if ( int.TryParse( ConfigurationData["PhysicalMemoryLimitPercentage"], out result ) )
             return result;
 
           else
@@ -178,9 +189,9 @@ namespace Ivony.Caching
             throw new ArgumentOutOfRangeException( "value" );
 
           if ( value == null )
-            Configuration["PhysicalMemoryLimitPercentage"] = null;
+            ConfigurationData["PhysicalMemoryLimitPercentage"] = null;
           else
-            Configuration["PhysicalMemoryLimitPercentage"] = value.ToString();
+            ConfigurationData["PhysicalMemoryLimitPercentage"] = value.ToString();
 
         }
       }
@@ -194,7 +205,7 @@ namespace Ivony.Caching
         get
         {
           int result;
-          if ( int.TryParse( Configuration["PollingInterval"], out result ) )
+          if ( int.TryParse( ConfigurationData["PollingInterval"], out result ) )
             return result;
 
           else
@@ -203,9 +214,9 @@ namespace Ivony.Caching
         set
         {
           if ( value == null )
-            Configuration["PollingInterval"] = null;
+            ConfigurationData["PollingInterval"] = null;
           else
-            Configuration["PollingInterval"] = value.ToString();
+            ConfigurationData["PollingInterval"] = value.ToString();
 
         }
       }

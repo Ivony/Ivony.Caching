@@ -37,7 +37,7 @@ namespace Ivony.Caching
     Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy, CancellationToken cancellationToken = default( CancellationToken ) );
 
     /// <summary>
-    /// 设置缓存值
+    /// 更新缓存值
     /// </summary>
     /// <typeparam name="T">缓存值类型</typeparam>
     /// <param name="cacheKey">缓存键</param>
@@ -45,7 +45,7 @@ namespace Ivony.Caching
     /// <param name="cachePolicy">缓存策略</param>
     /// <param name="cancellationToken">用于取消异步操作的标识</param>
     /// <returns></returns>
-    Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy, CancellationToken cancellationToken = default( CancellationToken ) );
+    Task Update<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy, CancellationToken cancellationToken = default( CancellationToken ) );
 
 
     /// <summary>

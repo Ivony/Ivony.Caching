@@ -41,14 +41,16 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CacheDependency.cs" />
     <Compile Include="CacheHelper.cs" />
-    <Compile Include="CachePolicy.cs" />
+    <Compile Include="CachePolicyItem.cs" />
     <Compile Include="CachePerformaceMonitor.cs" />
+    <Compile Include="CachePriority.cs" />
     <Compile Include="ConcurrentHelper.cs" />
     <Compile Include="DiskCacheManager.cs" />
     <Compile Include="DiskCacheProvider.cs" />
     <Compile Include="DistributedCacheProvider.cs" />
-    <Compile Include="ICachePolicyProvider.cs" />
+    <Compile Include="CachePolicy.cs" />
     <Compile Include="CacheService.cs" />
     <Compile Include="IAsyncCacheProvider.cs" />
     <Compile Include="IAsyncCacheService.cs" />

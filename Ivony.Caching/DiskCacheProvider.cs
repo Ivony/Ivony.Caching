@@ -80,7 +80,7 @@ namespace Ivony.Caching
 
 
       var cachePolicy = _manager.GetCachePolicy( cacheKey );
-      if ( cachePolicy == null || cachePolicy.IsValid == false )
+      if ( cachePolicy == null || cachePolicy.GetCacheState( cacheKey ) == CacheValidationState.Invalid )
         return null;
 
       return _serializer.Deserialize( await _manager.ReadStream( cacheKey ) );
@@ -104,7 +104,7 @@ namespace Ivony.Caching
     /// <param name="cacheKey">缓存键</param>
     /// <param name="value">缓存值</param>
     /// <param name="cachePolicy">缓存策略</param>
-    public async Task Set( string cacheKey, object value, CachePolicy cachePolicy )
+    public async Task Set( string cacheKey, object value, CachePolicyItem cachePolicy )
     {
 
       _manager.SetCachePolicy( cacheKey, cachePolicy );
