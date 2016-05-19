@@ -83,7 +83,10 @@ namespace Ivony.Caching
       if ( cachePolicy == null || cachePolicy.CacheState == CacheState.Invalid )
         return null;
 
-      return _serializer.Deserialize( await _manager.ReadStream( cacheKey ) );
+      var stream = await _manager.ReadStream( cacheKey );
+      if ( stream == null )
+        return null;
+      return _serializer.Deserialize( stream );
     }
 
 
