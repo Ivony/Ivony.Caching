@@ -83,7 +83,8 @@ namespace Ivony.Caching
     /// <returns>应用了默认缓存优先级的缓存策略提供程序</returns>
     public CachePolicy WithPriority( CachePriority priority )
     {
-      return new CachePolicyProviderWithPriority( this, priority );
+      return CachePolicyProviderWithPriority.Create( this, priority );
+
     }
 
 
@@ -100,17 +101,33 @@ namespace Ivony.Caching
     private class CachePolicyProviderWithPriority : CachePolicy
     {
       private CachePriority _priority;
-      private CachePolicy _provider;
+      private CachePolicy _policy;
 
-      public CachePolicyProviderWithPriority( CachePolicy provider, CachePriority priority )
+
+      private CachePolicyProviderWithPriority( CachePolicy policy, CachePriority priority )
       {
-        _provider = provider;
+        _policy = policy;
         _priority = priority;
       }
 
+
+
+      public static CachePolicyProviderWithPriority Create( CachePolicy policy, CachePriority priority )
+      {
+
+        var withPriority = policy as CachePolicyProviderWithPriority;
+        if ( withPriority != null )
+          return new CachePolicyProviderWithPriority( withPriority._policy, priority );
+
+        else
+          return new CachePolicyProviderWithPriority( policy, priority );
+
+      }
+
+
       public override CachePolicyItem CreatePolicyItem( string cacheKey, object cacheValue )
       {
-        return _provider.CreatePolicyItem( cacheKey, cacheValue ).SetPriority( _priority );
+        return _policy.CreatePolicyItem( cacheKey, cacheValue ).SetPriority( _priority );
       }
     }
   }

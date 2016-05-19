@@ -41,7 +41,7 @@ namespace Ivony.Caching
 
 
     /// <summary>
-    /// 缓存无效策略
+    /// 缓存依赖项
     /// </summary>
     public CacheDependency Dependencies { get; private set; }
 
