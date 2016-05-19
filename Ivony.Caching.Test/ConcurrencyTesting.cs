@@ -12,7 +12,91 @@ namespace Ivony.Caching.Test
     [TestMethod]
     public void MemoryCache()
     {
-      using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
+      using ( var provider = new MemoryCacheProvider( "Test" ) )
+      {
+        var cacheService = new CacheService( provider );
+
+
+        var tasks = new List<Task>();
+
+
+        //测试并发创建值
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+        //测试从缓存读取
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+
+        //清除缓存
+        cacheService.Clear();
+        _value = null;
+
+
+
+
+        //测试创建新值
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+        cacheService.Clear();
+        {
+          _value = null;
+          var value = cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) ).Result;
+
+          Assert.IsNotNull( _value );
+          Assert.AreEqual( _value, value );
+        }
+      }
+    }
+
+
+
+    [TestMethod]
+    public void DiskCache()
+    {
+      using ( var provider = new DiskCacheProvider( @"C:\Temp\Cache" ) )
       {
         var cacheService = new CacheService( provider );
 

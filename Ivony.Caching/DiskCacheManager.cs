@@ -104,9 +104,9 @@ namespace Ivony.Caching
 
       await WaitAndRemove( cacheKey, task );
 
-      var readTask = task as Task<Stream>;
+      var readTask = task as Task<byte[]>;
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
-        return readTask.Result;
+        return new MemoryStream( readTask.Result, false );
 
       else                                   //如果当前正在写，则再读取一次。
         return await ReadStream( cacheKey );
@@ -115,7 +115,7 @@ namespace Ivony.Caching
 
 
 
-    private async Task<Stream> ReadStream( FileStream stream )
+    private async Task<byte[]> ReadStream( FileStream stream )
     {
       using ( stream )
       {
@@ -133,8 +133,7 @@ namespace Ivony.Caching
             break;
         }
 
-        result.Seek( 0, SeekOrigin.Begin );
-        return result;
+        return result.ToArray();
       }
     }
 
