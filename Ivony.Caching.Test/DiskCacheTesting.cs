@@ -50,17 +50,17 @@ namespace Ivony.Caching.Test
     {
 
 
-      Task.Run( async () =>
+      Task.Run( (Func<Task>) (async () =>
       {
 
         using ( var provider = new DiskCacheProvider( Path.Combine( Path.GetTempPath(), "Cache" ) ) )
         {
-          var service = new CacheService( provider, CachePolicyProviders.Expires( TimeSpan.FromHours( 1 ) ) );
+          var service = new CacheService( (IAsyncCacheProvider) provider, (Caching.CachePolicy) Caching.CachePolicy.Expires( (TimeSpan) TimeSpan.FromHours( (double) 1 ) ) );
 
           for ( var i = 0; i < 1000; i++ )
           {
-            var _value = await service.FetchOrAdd( "Test", ValueFactory );
-            Assert.AreEqual( _value, value );
+            var _value = await service.FetchOrAdd<object>( (string) "Test", (Func<Task<object>>) this.ValueFactory );
+            Assert.AreEqual( (object) _value, value );
           }
 
 
@@ -75,9 +75,9 @@ namespace Ivony.Caching.Test
 
 
           {
-            await service.Set( "Test", ValueFactory );
-            var _value = await service.FetchOrAdd( "Test", ValueFactory );
-            Assert.AreEqual( _value, value );
+            await service.Update<object>( (string) "Test", (Func<Task<object>>) this.ValueFactory );
+            var _value = await service.FetchOrAdd<object>( (string) "Test", (Func<Task<object>>) this.ValueFactory );
+            Assert.AreEqual( (object) _value, value );
           }
 
           {
@@ -90,7 +90,7 @@ namespace Ivony.Caching.Test
 
 
         }
-      } ).Wait();
+      }) ).Wait();
     }
 
 

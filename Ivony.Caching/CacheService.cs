@@ -72,10 +72,10 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheProvider">异步缓存提供程序</param>
     /// <param name="defaultPolicy">默认缓存策略</param>
-    public CacheService( IAsyncCacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
+    public CacheService( IAsyncCacheProvider cacheProvider, CachePolicy defaultPolicy = null )
     {
       _cacheProvider = cacheProvider;
-      DefaultCachePolicyProvider = defaultPolicy ?? new NullCachePolicyProvider();
+      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicyProvider();
     }
 
 
@@ -84,10 +84,10 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheProvider">同步缓存提供程序</param>
     /// <param name="defaultPolicy">默认缓存策略</param>
-    public CacheService( ICacheProvider cacheProvider, ICachePolicyProvider defaultPolicy = null )
+    public CacheService( ICacheProvider cacheProvider, CachePolicy defaultPolicy = null )
     {
       _cacheProvider = cacheProvider.AsAsyncProvider();
-      DefaultCachePolicyProvider = defaultPolicy ?? new NullCachePolicyProvider();
+      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicyProvider();
     }
 
 
@@ -96,13 +96,13 @@ namespace Ivony.Caching
     /// <summary>
     /// 默认缓存策略提供程序
     /// </summary>
-    protected ICachePolicyProvider DefaultCachePolicyProvider { get; private set; }
+    public CachePolicy DefaultCachePolicy { get; private set; }
 
 
 
-    private sealed class NullCachePolicyProvider : ICachePolicyProvider
+    private sealed class NullCachePolicyProvider : CachePolicy
     {
-      public CachePolicy CreateCachePolicy( string cacheKey, object cacheValue )
+      public override CachePolicyItem CreatePolicyItem( string cacheKey, object cacheValue )
       {
         return null;
       }
@@ -130,13 +130,13 @@ namespace Ivony.Caching
 
       var value = await valueFactory();
 
-      cachePolicy = cachePolicy ?? DefaultCachePolicyProvider.CreateCachePolicy( cacheKey, value );
-      if ( cachePolicy == null )
+      var policy = (cachePolicy ?? DefaultCachePolicy).CreatePolicyItem( cacheKey, value );
+      if ( policy == null )
         throw NoCachePolicy();
 
 
-      if ( cachePolicy.IsValid )
-        await _cacheProvider.Set( cacheKey, value, cachePolicy );
+      if ( policy.CacheState == CacheState.Valid )
+        await _cacheProvider.Set( cacheKey, value, policy );
 
 
       return value;
@@ -176,7 +176,7 @@ namespace Ivony.Caching
     /// <param name="policy"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    public async Task Set<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
+    public async Task Update<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
       bool running = true;
@@ -188,7 +188,7 @@ namespace Ivony.Caching
 
 
       if ( running )
-        await Set( cacheKey, valueFactory, policy, cancellationToken );
+        await Update( cacheKey, valueFactory, policy, cancellationToken );
 
     }
 

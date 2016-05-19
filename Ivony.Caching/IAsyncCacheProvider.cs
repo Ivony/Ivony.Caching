@@ -27,7 +27,7 @@ namespace Ivony.Caching
     /// <param name="value">缓存值</param>
     /// <param name="cachePolicy">缓存策略</param>
     /// <returns>用于等待操作完成的 Task 对象</returns>
-    Task Set( string cacheKey, object value, CachePolicy cachePolicy );
+    Task Set( string cacheKey, object value, CachePolicyItem cachePolicy );
 
     /// <summary>
     /// 移除某个缓存值

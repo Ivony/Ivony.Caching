@@ -62,7 +62,7 @@ namespace Ivony.Caching
       await provider.Remove( cacheKey );
     }
 
-    async Task IAsyncCacheProvider.Set( string cacheKey, object value, CachePolicy cachePolicy )
+    async Task IAsyncCacheProvider.Set( string cacheKey, object value, CachePolicyItem cachePolicy )
     {
       var provider = await GetCacheProvider( cacheKey );
       await provider.Set( cacheKey, value, cachePolicy );

@@ -49,7 +49,7 @@ namespace Ivony.Caching
         return Task.FromResult( (object) null );
       }
 
-      public Task Set( string key, object value, CachePolicy cachePolicy )
+      public Task Set( string key, object value, CachePolicyItem cachePolicy )
       {
         provider.Set( key, value, cachePolicy );
         return Task.FromResult( (object) null );

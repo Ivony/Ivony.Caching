@@ -39,7 +39,7 @@ namespace Ivony.Caching.Memcached
         throw new Exception( result.Message, result.Exception );
     }
 
-    void ICacheProvider.Set( string key, object value, CachePolicy cachePolicy )
+    void ICacheProvider.Set( string key, object value, CachePolicyItem cachePolicy )
     {
       client.Store( StoreMode.Set, key, value, cachePolicy.Expires );
     }

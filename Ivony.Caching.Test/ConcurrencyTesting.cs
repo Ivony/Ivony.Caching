@@ -12,7 +12,7 @@ namespace Ivony.Caching.Test
     [TestMethod]
     public void MemoryCache()
     {
-      using ( var provider = new MemoryCacheProvider( "Test" ).AsAsyncProvider() )
+      using ( var provider = new MemoryCacheProvider( "Test" ) )
       {
         var cacheService = new CacheService( provider );
 
@@ -27,7 +27,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -45,7 +45,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -70,7 +70,7 @@ namespace Ivony.Caching.Test
           {
             await Task.Yield();
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
             Assert.AreEqual( value, _value );
           };
 
@@ -83,7 +83,91 @@ namespace Ivony.Caching.Test
         cacheService.Clear();
         {
           _value = null;
-          var value = cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) ).Result;
+          var value = cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) ).Result;
+
+          Assert.IsNotNull( _value );
+          Assert.AreEqual( _value, value );
+        }
+      }
+    }
+
+
+
+    [TestMethod]
+    public void DiskCache()
+    {
+      using ( var provider = new DiskCacheProvider( @"C:\Temp\Cache" ) )
+      {
+        var cacheService = new CacheService( provider );
+
+
+        var tasks = new List<Task>();
+
+
+        //测试并发创建值
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+        //测试从缓存读取
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+
+        //清除缓存
+        cacheService.Clear();
+        _value = null;
+
+
+
+
+        //测试创建新值
+        for ( int i = 0; i < 1000; i++ )
+        {
+          Func<int, Task> task = async ( j ) =>
+          {
+            await Task.Yield();
+
+            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) );
+            Assert.AreEqual( value, _value );
+          };
+
+          tasks.Add( task( i ) );
+        }
+        Task.WaitAll( tasks.ToArray() );
+
+
+
+        cacheService.Clear();
+        {
+          _value = null;
+          var value = cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expires( TimeSpan.FromHours( 1 ) ) ).Result;
 
           Assert.IsNotNull( _value );
           Assert.AreEqual( _value, value );
@@ -102,7 +186,7 @@ namespace Ivony.Caching.Test
         var cacheService = new CacheService( provider );
 
 
-        Task.Run( async () =>
+        Task.Run( (Func<Task>) (async () =>
           {
 
             bool exception_catched = false;
@@ -110,7 +194,7 @@ namespace Ivony.Caching.Test
             try
             {
 
-              await cacheService.FetchOrAdd( "Test", ValueFactoryWithException, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
+              await cacheService.FetchOrAdd<string>( (string) "Test", (Func<Task<string>>) this.ValueFactoryWithException, (Caching.CachePolicy) Caching.CachePolicy.Expires( (TimeSpan) TimeSpan.FromHours( (double) 1 ) ) );
             }
             catch
             {
@@ -119,11 +203,11 @@ namespace Ivony.Caching.Test
 
             Assert.IsTrue( exception_catched );
 
-            var value = await cacheService.FetchOrAdd( "Test", ValueFactory, CachePolicy.Expired( TimeSpan.FromHours( 1 ) ) );
-            Assert.AreEqual( value, _value );
+            var value = await cacheService.FetchOrAdd<string>( (string) "Test", (Func<Task<string>>) this.ValueFactory, (Caching.CachePolicy) Caching.CachePolicy.Expires( (TimeSpan) TimeSpan.FromHours( (double) 1 ) ) );
+            Assert.AreEqual( (string) value, _value );
 
 
-          }
+          })
         ).Wait();
 
       }

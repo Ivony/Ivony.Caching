@@ -72,9 +72,9 @@ namespace Ivony.Caching
 
       Task task = tasks.GetOrAdd( cacheKey, () => ReadStream( File.OpenRead( filepath ) ) );
 
-      var readTask = task as Task<Stream>;
+      var readTask = task as Task<byte[]>;
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
-        return readTask.Result;
+        return new MemoryStream( readTask.Result, false );
 
       else                                   //如果当前正在写，则再读取一次。
         return await ReadStream( cacheKey );
@@ -83,7 +83,7 @@ namespace Ivony.Caching
 
 
 
-    private async Task<Stream> ReadStream( FileStream stream )
+    private async Task<byte[]> ReadStream( FileStream stream )
     {
       using ( stream )
       {
@@ -101,8 +101,7 @@ namespace Ivony.Caching
             break;
         }
 
-        result.Seek( 0, SeekOrigin.Begin );
-        return result;
+        return result.ToArray();
       }
     }
 
@@ -174,14 +173,14 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheKey">缓存键</param>
     /// <returns>缓存策略对象</returns>
-    public CachePolicy GetCachePolicy( string cacheKey )
+    public CachePolicyItem GetCachePolicy( string cacheKey )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 
       if ( File.Exists( filepath ) == false )
         return null;
 
-      return CachePolicy.Parse( File.ReadAllText( filepath ) );
+      return CachePolicyItem.Parse( File.ReadAllText( filepath ) );
     }
 
 
@@ -191,7 +190,7 @@ namespace Ivony.Caching
     /// </summary>
     /// <param name="cacheKey"></param>
     /// <param name="cachePolicy"></param>
-    public void SetCachePolicy( string cacheKey, CachePolicy cachePolicy )
+    public void SetCachePolicy( string cacheKey, CachePolicyItem cachePolicy )
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 

@@ -53,7 +53,7 @@ namespace Ivony.Caching
         return value;
 
 
-      CachePolicy cachePolicy;
+      CachePolicyItem cachePolicy;
       value = await L2Cache.Get( key, out cachePolicy );
       if ( value == null )
         return null;
@@ -71,7 +71,7 @@ namespace Ivony.Caching
 
     }
 
-    public virtual async Task Set( string key, object value, CachePolicy cachePolicy )
+    public virtual async Task Set( string key, object value, CachePolicyItem cachePolicy )
     {
 
 
