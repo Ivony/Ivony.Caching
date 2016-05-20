@@ -25,8 +25,9 @@ namespace Ivony.Caching
     /// <summary>
     /// 创建磁盘缓存管理器对象
     /// </summary>
-    /// <param name="rootPath"></param>
-    public DiskCacheManager( string rootPath, bool persistMode = false )
+    /// <param name="rootPath">缓存文件存放的路径</param>
+    /// <param name="persistMode">持久模式，在此模式下，重启后将尽可能的使用原来的缓存目录</param>
+    public DiskCacheManager( string rootPath, bool persistMode = true )
     {
       RootPath = rootPath;
       _persistMode = false;
@@ -112,6 +113,7 @@ namespace Ivony.Caching
 
 
       Task task = tasks.GetOrAdd( cacheKey, () => ReadStream( File.OpenRead( filepath ) ) );
+      await task;
 
       var readTask = task as Task<byte[]>;
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
@@ -167,6 +169,8 @@ namespace Ivony.Caching
           added = true;
           return WriteStream( File.OpenWrite( filepath ), data );
         } );
+
+      await task;
 
 
       if ( added == false )     //如果任务未能加入队列，则再尝试一次
