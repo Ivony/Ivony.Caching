@@ -30,7 +30,7 @@ namespace Ivony.Caching
     public DiskCacheManager( string rootPath, bool persistMode = true )
     {
       RootPath = rootPath;
-      _persistMode = false;
+      _persistMode = persistMode;
     }
 
     /// <summary>
