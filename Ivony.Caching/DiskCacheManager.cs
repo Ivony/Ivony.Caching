@@ -178,9 +178,22 @@ namespace Ivony.Caching
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 
       if ( File.Exists( filepath ) == false )
-        return null;
+        return CachePolicyItem.Invalid;
 
-      return CachePolicyItem.Parse( File.ReadAllText( filepath ) );
+      try
+      {
+        string data;
+        using ( var reader = new StreamReader( new FileStream( filepath, FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite ), Encoding.UTF8 ) )
+        {
+          data = reader.ReadToEnd();
+        }
+
+        return CachePolicyItem.Parse( data );
+      }
+      catch ( IOException )
+      {
+        return CachePolicyItem.Invalid;
+      }
     }
 
 
@@ -194,7 +207,10 @@ namespace Ivony.Caching
     {
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 
-      File.WriteAllText( filepath, cachePolicy.ToString() );
+      using ( var writer = new StreamWriter( new FileStream( filepath, FileMode.Create, FileAccess.Write, FileShare.Delete ), Encoding.UTF8 ) )
+      {
+        writer.Write( cachePolicy.ToString() );
+      }
     }
 
     /// <summary>

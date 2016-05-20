@@ -80,7 +80,7 @@ namespace Ivony.Caching
 
 
       var cachePolicy = _manager.GetCachePolicy( cacheKey );
-      if ( cachePolicy == null || cachePolicy.CacheState == CacheState.Invalid )
+      if ( cachePolicy.CacheState == CacheState.Invalid )
         return null;
 
       var stream = await _manager.ReadStream( cacheKey );
