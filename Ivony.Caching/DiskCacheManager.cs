@@ -31,7 +31,14 @@ namespace Ivony.Caching
     /// </summary>
     internal void AssignCacheDirectory()
     {
-      CurrentDirectory = Path.Combine( RootPath, Path.GetRandomFileName() );
+      var directoryName = Path.GetRandomFileName();
+      try
+      {
+        File.WriteAllText( Path.Combine( RootPath, "directory.cache" ), directoryName, Encoding.UTF8 );
+      }
+      catch ( IOException ) { }
+
+      CurrentDirectory = Path.Combine( RootPath, directoryName );
       Directory.CreateDirectory( CurrentDirectory );
     }
 
