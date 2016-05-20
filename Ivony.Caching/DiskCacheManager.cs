@@ -37,6 +37,28 @@ namespace Ivony.Caching
 
 
 
+    internal void Initialize()
+    {
+      try
+      {
+        var directoryName = File.ReadAllText( Path.Combine( RootPath, "directory.cache" ), Encoding.UTF8 );
+        var directory = Path.Combine( RootPath, directoryName );
+
+        if ( Directory.Exists( directory ) )
+          CurrentDirectory = directory;
+
+        else
+          AssignCacheDirectory();
+      }
+      catch ( IOException )
+      {
+        AssignCacheDirectory();
+      }
+
+    }
+
+
+
     /// <summary>
     /// 缓存根目录
     /// </summary>

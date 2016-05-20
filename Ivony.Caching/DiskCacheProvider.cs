@@ -40,7 +40,7 @@ namespace Ivony.Caching
       _manager = new DiskCacheManager( path );
       _serializer = serializer;
 
-      _manager.AssignCacheDirectory();
+      _manager.Initialize();
     }
 
 
