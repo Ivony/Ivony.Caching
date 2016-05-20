@@ -57,6 +57,10 @@ namespace Ivony.Caching.Test
         {
           var service = new CacheService( (IAsyncCacheProvider) provider, (Caching.CachePolicy) Caching.CachePolicy.Expires( (TimeSpan) TimeSpan.FromHours( (double) 1 ) ) );
 
+
+          Assert.AreEqual( await service.Fetch( Path.GetRandomFileName().Replace( ".", "" ), "ABC" ), "ABC" );
+
+
           for ( var i = 0; i < 1000; i++ )
           {
             var _value = await service.FetchOrAdd<object>( (string) "Test", (Func<Task<object>>) this.ValueFactory );
