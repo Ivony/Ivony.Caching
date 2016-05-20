@@ -54,28 +54,7 @@ namespace Ivony.Caching
     public int BufferSize { get; private set; } = 1024;
 
 
-
-    private object _sync = new object();
-
-    private Dictionary<string, Task> actionTasks = new Dictionary<string, Task>();
-
-
-    private async Task WaitAndRemove( string cacheKey, Task task )
-    {
-      try
-      {
-        await task;
-      }
-      finally
-      {
-        lock ( _sync )
-        {
-          Task current;
-          if ( actionTasks.TryGetValue( cacheKey, out current ) && current == task )
-            actionTasks.Remove( cacheKey );
-        }
-      }
-    }
+    private TaskManager tasks = new TaskManager();
 
 
     /// <summary>
@@ -91,18 +70,7 @@ namespace Ivony.Caching
 
 
 
-      Task task;
-      lock ( _sync )
-      {
-        if ( actionTasks.TryGetValue( cacheKey, out task ) == false )
-        {
-          actionTasks.Add( cacheKey, task = ReadStream( File.OpenRead( filepath ) ) );
-        }
-      }
-
-
-
-      await WaitAndRemove( cacheKey, task );
+      Task task = tasks.GetOrAdd( cacheKey, () => ReadStream( File.OpenRead( filepath ) ) );
 
       var readTask = task as Task<byte[]>;
       if ( readTask != null )                //如果当前正在读，则以当前读取结果返回。
@@ -150,21 +118,17 @@ namespace Ivony.Caching
 
 
 
-      Task task;
-      bool running = false;
-      lock ( _sync )
-      {
-        if ( actionTasks.TryGetValue( cacheKey, out task ) == false )
-          actionTasks.Add( cacheKey, task = WriteStream( File.OpenWrite( filepath ), data ) );
-        else
-          running = true;
-      }
-
-      await WaitAndRemove( cacheKey, task );
+      bool added = false;
 
 
+      var task = tasks.GetOrAdd( cacheKey, () =>
+        {
+          added = true;
+          return WriteStream( File.OpenWrite( filepath ), data );
+        } );
 
-      if ( running )     //如果任务未能加入队列，则再尝试一次
+
+      if ( added == false )     //如果任务未能加入队列，则再尝试一次
         await WriteStream( cacheKey, data );
 
     }
