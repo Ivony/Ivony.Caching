@@ -43,6 +43,7 @@
   <ItemGroup>
     <Compile Include="CacheDependency.cs" />
     <Compile Include="CacheHelper.cs" />
+    <Compile Include="CacheEntry.cs" />
     <Compile Include="CachePolicyItem.cs" />
     <Compile Include="CachePerformaceMonitor.cs" />
     <Compile Include="CachePriority.cs" />

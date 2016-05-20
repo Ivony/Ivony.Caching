@@ -75,7 +75,7 @@ namespace Ivony.Caching
     public CacheService( IAsyncCacheProvider cacheProvider, CachePolicy defaultPolicy = null )
     {
       _cacheProvider = cacheProvider;
-      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicyProvider();
+      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicy();
     }
 
 
@@ -87,7 +87,7 @@ namespace Ivony.Caching
     public CacheService( ICacheProvider cacheProvider, CachePolicy defaultPolicy = null )
     {
       _cacheProvider = cacheProvider.AsAsyncProvider();
-      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicyProvider();
+      DefaultCachePolicy = defaultPolicy ?? new NullCachePolicy();
     }
 
 
@@ -100,7 +100,7 @@ namespace Ivony.Caching
 
 
 
-    private sealed class NullCachePolicyProvider : CachePolicy
+    private sealed class NullCachePolicy : CachePolicy
     {
       public override CachePolicyItem CreatePolicyItem( string cacheKey, object cacheValue )
       {
@@ -121,19 +121,22 @@ namespace Ivony.Caching
     /// </summary>
     /// <typeparam name="T">缓存值类型</typeparam>
     /// <param name="cacheKey">缓存键</param>
-    /// <param name="valueFactory">创建缓存值的工厂</param>
-    /// <param name="cachePolicy">缓存策略</param>
+    /// <param name="cacheFactory">创建缓存值和策略的工厂方法</param>
     /// <returns>一个创建和设置缓存值的任务</returns>
-    private async Task<T> SetValue<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy cachePolicy )
+    private async Task<T> SetValue<T>( string cacheKey, Func<Task<CacheEntry<T>>> cacheFactory )
     {
       await Task.Yield();
 
-      var value = await valueFactory();
+      var cacheEntry = await cacheFactory();
 
-      var policy = (cachePolicy ?? DefaultCachePolicy).CreatePolicyItem( cacheKey, value );
+
+      var policy = cacheEntry.CachePolicyItem;
+
       if ( policy == null )
-        throw NoCachePolicy();
+        throw new InvalidOperationException( "invalid cache entry object." );
 
+
+      var value = cacheEntry.Value;
 
       if ( policy.CacheState == CacheState.Valid )
         await _cacheProvider.Set( cacheKey, value, policy );
@@ -168,29 +171,56 @@ namespace Ivony.Caching
 
 
     /// <summary>
-    /// 尝试设置一个缓存项
+    /// 尝试更新一个缓存项
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    /// <param name="cacheKey"></param>
-    /// <param name="valueFactory"></param>
-    /// <param name="policy"></param>
-    /// <param name="cancellationToken"></param>
+    /// <typeparam name="T">缓存值类型</typeparam>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="valueFactory">创建缓存值的工厂方法</param>
+    /// <param name="policy">缓存策略</param>
+    /// <param name="cancellationToken">取消标识</param>
     /// <returns></returns>
-    public async Task Update<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
+    public Task Update<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
+      policy = policy ?? DefaultCachePolicy;
+      if ( policy == null )
+        throw NoCachePolicy();
 
+
+      return Update( cacheKey, async () =>
+      {
+        var value = await valueFactory();
+        var policyItem = policy.CreatePolicyItem( cacheKey, value );
+
+        return new CacheEntry<T>( value, policyItem );
+      }, cancellationToken );
+    }
+
+
+
+    /// <summary>
+    /// 尝试更新一个缓存项
+    /// </summary>
+    /// <typeparam name="T">缓存值类型</typeparam>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="cacheFactory">创建缓存值和策略的工厂方法</param>
+    /// <param name="cancellationToken">取消标识</param>
+    public async Task Update<T>( string cacheKey, Func<Task<CacheEntry<T>>> cacheFactory, CancellationToken cancellationToken = default( CancellationToken ) )
+    {
       bool running = true;
       await _tasks.GetOrAdd( cacheKey, () =>
       {
         running = false;
-        return SetValue( cacheKey, valueFactory, policy );
+        return SetValue( cacheKey, cacheFactory );
       } );
 
 
       if ( running )
-        await Update( cacheKey, valueFactory, policy, cancellationToken );
+        await Update( cacheKey, cacheFactory, cancellationToken );
 
     }
+
+
+
 
 
     /// <summary>
@@ -202,16 +232,42 @@ namespace Ivony.Caching
     /// <param name="policy">缓存策略</param>
     /// <param name="cancellationToken">取消标识</param>
     /// <returns></returns>
-    public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
+    public Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<T>> valueFactory, CachePolicy policy = null, CancellationToken cancellationToken = default( CancellationToken ) )
     {
 
+      policy = policy ?? DefaultCachePolicy;
+      if ( policy == null )
+        throw NoCachePolicy();
+
+      return FetchOrAdd( cacheKey, async () =>
+      {
+        var value = await valueFactory();
+        var policyItem = policy.CreatePolicyItem( cacheKey, value );
+
+        return new CacheEntry<T>( value, policyItem );
+      }, cancellationToken );
+    }
+
+
+
+
+    /// <summary>
+    /// 获取或添加缓存项
+    /// </summary>
+    /// <typeparam name="T">缓存值类型</typeparam>
+    /// <param name="cacheKey">缓存键</param>
+    /// <param name="cacheFactory">创建缓存值和缓存策略的工厂</param>
+    /// <param name="cancellationToken">取消标识</param>
+    /// <returns></returns>
+    public async Task<T> FetchOrAdd<T>( string cacheKey, Func<Task<CacheEntry<T>>> cacheFactory, CancellationToken cancellationToken = default( CancellationToken ) )
+    {
       var value = await GetValue<T>( cacheKey );
       if ( value.Success )
         return value.Value;
 
 
 
-      var task = _tasks.GetOrAdd( cacheKey, () => SetValue( cacheKey, valueFactory, policy ) );
+      var task = _tasks.GetOrAdd( cacheKey, () => SetValue( cacheKey, cacheFactory ) );
       await task;
 
 
@@ -221,6 +277,8 @@ namespace Ivony.Caching
 
       else
         throw new InvalidCastException( string.Format( "cannot cast the setted value to type \"{0}\"", typeof( T ).AssemblyQualifiedName ) );
+
+
     }
 
 
