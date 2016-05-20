@@ -129,13 +129,10 @@ namespace Ivony.Caching
 
       var cacheEntry = await cacheFactory();
 
+      cacheEntry.Validate();
+
 
       var policy = cacheEntry.CachePolicyItem;
-
-      if ( policy == null )
-        throw new InvalidOperationException( "invalid cache entry object." );
-
-
       var value = cacheEntry.Value;
 
       if ( policy.CacheState == CacheState.Valid )

@@ -44,5 +44,15 @@ namespace Ivony.Caching
     /// </summary>
     public CachePolicyItem CachePolicyItem { get { return _policy; } }
 
+
+    /// <summary>
+    /// 检查 CacheEntry 对象是否合法，若未被初始化或者被错误的初始化，则抛出异常
+    /// </summary>
+    public void Validate()
+    {
+      if ( _policy == null )
+        throw new InvalidOperationException( "invalid cache entry." );
+    }
+
   }
 }
