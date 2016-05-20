@@ -17,13 +17,19 @@ namespace Ivony.Caching
   {
 
 
+
+
+    private bool _persistMode;
+
+
     /// <summary>
     /// 创建磁盘缓存管理器对象
     /// </summary>
     /// <param name="rootPath"></param>
-    public DiskCacheManager( string rootPath )
+    public DiskCacheManager( string rootPath, bool persistMode = false )
     {
       RootPath = rootPath;
+      _persistMode = false;
     }
 
     /// <summary>
@@ -32,11 +38,14 @@ namespace Ivony.Caching
     internal void AssignCacheDirectory()
     {
       var directoryName = Path.GetRandomFileName();
-      try
+      if ( _persistMode )
       {
-        File.WriteAllText( Path.Combine( RootPath, "directory.cache" ), directoryName, Encoding.UTF8 );
+        try
+        {
+          File.WriteAllText( Path.Combine( RootPath, "directory.cache" ), directoryName, Encoding.UTF8 );
+        }
+        catch ( IOException ) { }
       }
-      catch ( IOException ) { }
 
       CurrentDirectory = Path.Combine( RootPath, directoryName );
       Directory.CreateDirectory( CurrentDirectory );
@@ -46,21 +55,24 @@ namespace Ivony.Caching
 
     internal void Initialize()
     {
-      try
+      if ( _persistMode )
       {
-        var directoryName = File.ReadAllText( Path.Combine( RootPath, "directory.cache" ), Encoding.UTF8 );
-        var directory = Path.Combine( RootPath, directoryName );
+        try
+        {
+          var directoryName = File.ReadAllText( Path.Combine( RootPath, "directory.cache" ), Encoding.UTF8 );
+          var directory = Path.Combine( RootPath, directoryName );
 
-        if ( Directory.Exists( directory ) )
-          CurrentDirectory = directory;
+          if ( Directory.Exists( directory ) )
+            CurrentDirectory = directory;
 
-        else
-          AssignCacheDirectory();
+        }
+        catch ( IOException )
+        {
+        }
       }
-      catch ( IOException )
-      {
+
+      if ( CurrentDirectory == null )
         AssignCacheDirectory();
-      }
 
     }
 
