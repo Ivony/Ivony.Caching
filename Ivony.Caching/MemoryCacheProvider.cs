@@ -132,16 +132,25 @@ namespace Ivony.Caching
       internal NameValueCollection ConfigurationData { get; private set; }
 
 
+      /// <summary>
+      /// 创建 Configuration 对象
+      /// </summary>
       public Configuration()
       {
         ConfigurationData = new NameValueCollection();
       }
 
-      public string this[string key]
-      {
-        get { return ConfigurationData[key]; }
 
-        set { ConfigurationData[key] = value; }
+      /// <summary>
+      /// 获取指定配置的值
+      /// </summary>
+      /// <param name="name">配置名</param>
+      /// <returns>配置值</returns>
+      public string this[string name]
+      {
+        get { return ConfigurationData[name]; }
+
+        set { ConfigurationData[name] = value; }
       }
 
 
