@@ -223,7 +223,7 @@ namespace Ivony.Caching
       var filepath = Path.Combine( CurrentDirectory, cacheKey + ".policy" );
 
       if ( File.Exists( filepath ) == false )
-        return CachePolicyItem.Invalid;
+        return CachePolicyItem.InvalidCachePolicy;
 
       try
       {
@@ -237,7 +237,7 @@ namespace Ivony.Caching
       }
       catch ( IOException )
       {
-        return CachePolicyItem.Invalid;
+        return CachePolicyItem.InvalidCachePolicy;
       }
     }
 

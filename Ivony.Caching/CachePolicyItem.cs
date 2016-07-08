@@ -69,13 +69,13 @@ namespace Ivony.Caching
 
 
 
-    private static readonly CachePolicyItem _invalid = new CachePolicyItem( DateTime.MinValue.ToUniversalTime() );
+    private static readonly CachePolicyItem _invalidItem = new CachePolicyItem( DateTime.MinValue.ToUniversalTime() );
 
 
     /// <summary>
     /// 获取一个已经失效的缓存策略
     /// </summary>
-    public static CachePolicyItem Invalid { get { return _invalid; } }
+    public static CachePolicyItem InvalidCachePolicy { get { return _invalidItem; } }
 
 
 
